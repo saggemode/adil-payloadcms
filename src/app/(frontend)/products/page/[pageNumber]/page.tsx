@@ -8,6 +8,8 @@ import React, { Suspense } from 'react'
 import PageClient from './page.client'
 import { notFound } from 'next/navigation'
 import { ProductArchive } from '@/components/ProductArchive'
+import { ProductPageRange } from '@/components/PageRange/ProductsPageRange'
+import { ProductsPagination } from '@/components/Pagination/ProductPagination'
 
 export const revalidate = 600
 
@@ -44,7 +46,7 @@ export default async function Page({ params: paramsPromise }: Args) {
         </div>
 
         <div className="container mb-8">
-          <PageRange
+          <ProductPageRange
             collection="products"
             currentPage={products.page}
             limit={12}
@@ -56,7 +58,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 
         <div className="container">
           {products?.page && products?.totalPages > 1 && (
-            <Pagination page={products.page} totalPages={products.totalPages} />
+            <ProductsPagination page={products.page} totalPages={products.totalPages} />
           )}
         </div>
       </Suspense>

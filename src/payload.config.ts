@@ -75,6 +75,7 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
+
   // db: sqliteAdapter({
   //   client: {
   //     url: process.env.DATABASE_URI || '',
