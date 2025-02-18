@@ -16,7 +16,6 @@ import { Gutter } from '@payloadcms/ui'
 import Categories from '@/components/Categories'
 import { getAllCategories } from '@/actions/productAction'
 
-
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
   const pages = await payload.find({
@@ -76,20 +75,20 @@ export default async function Page({ params: paramsPromise }: Args) {
       {slug === 'home' ? (
         <section>
           <PageClient />
-         
+
           <PayloadRedirects disableNotFound url={url} />
 
           {draft && <LivePreviewListener />}
           <RenderHero {...hero} />
           <Gutter className="flex flex-col gap-[100px] mt-[100px] md:gap-[60px]">
-            <Categories categories={categories} />
-            {/* <h5>categories</h5> */}
+            {/* <Categories categories={categories} /> */}
+            <h5>categories</h5>
           </Gutter>
         </section>
       ) : (
         <>
           <PageClient />
-        
+
           <PayloadRedirects disableNotFound url={url} />
 
           {draft && <LivePreviewListener />}
@@ -100,6 +99,36 @@ export default async function Page({ params: paramsPromise }: Args) {
       )}
     </article>
   )
+
+  // return (
+  //   <article className="pt-16 pb-24">
+  //     {slug === 'home' ? (
+  //       <section>
+  //         <PageClient />
+
+  //         <PayloadRedirects disableNotFound url={url} />
+
+  //         {draft && <LivePreviewListener />}
+  //         <RenderHero {...hero} />
+  //         <Gutter className="flex flex-col gap-[100px] mt-[100px] md:gap-[60px]">
+  //           <Categories categories={categories} />
+  //           {/* <h5>categories</h5> */}
+  //         </Gutter>
+  //       </section>
+  //     ) : (
+  //       <>
+  //         <PageClient />
+
+  //         <PayloadRedirects disableNotFound url={url} />
+
+  //         {draft && <LivePreviewListener />}
+
+  //         <RenderHero {...hero} />
+  //         <RenderBlocks blocks={layout} />
+  //       </>
+  //     )}
+  //   </article>
+  // )
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
