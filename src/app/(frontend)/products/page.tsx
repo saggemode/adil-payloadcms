@@ -5,7 +5,7 @@ import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
 import { ProductArchive } from '@/components/ProductArchive'
-import {   getAllProducts, getAllCategories } from '@/actions/productAction'
+import { getAllProducts, getAllCategories } from '@/actions/productAction'
 import ProductSortSelector from '@/components/ProductArchive/product-sort-selector'
 
 import MobileFilters from '@/components/MobileFilters'
@@ -14,7 +14,6 @@ import { Separator } from '@/components/ui/separator'
 import Filters from './Filters'
 import { ProductPageRange } from '@/components/PageRange/ProductsPageRange'
 import { ProductsPagination } from '@/components/Pagination/ProductPagination'
-
 
 export const dynamic = 'force-static'
 export const revalidate = 600
@@ -26,8 +25,6 @@ const sortOrders = [
   { value: 'avg-customer-review', name: 'Avg. customer review' },
   { value: 'best-selling', name: 'Best selling' },
 ]
-
-
 
 export default async function Page(props: {
   searchParams: Promise<{
@@ -61,15 +58,13 @@ export default async function Page(props: {
   })
 
   //  const categories = await payload.find({
-    
+
   //    collection: 'categories',
   //    depth: 1,
   //    limit: 100,
   //    overrideAccess: false,
-     
-  //  })
 
- 
+  //  })
 
   const searchParams = await props.searchParams
 
@@ -86,8 +81,7 @@ export default async function Page(props: {
   const params = { query: q, category, tag, price, rating, sort, page }
 
   //const tags = await getAllTags()
-   const categories = await getAllCategories()
-
+  const categories = await getAllCategories()
 
   const productme = await getAllProducts({
     query: q,
@@ -139,7 +133,7 @@ export default async function Page(props: {
             </div>
             <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
               <ProductArchive products={productme.docs} />
-              {/* <ProductArchive products={products.docs} /> */}
+
               <div className="container">
                 {products.totalPages > 1 && products.page && (
                   <ProductsPagination page={products.page} totalPages={products.totalPages} />

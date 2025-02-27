@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 import {
   Drawer,
   DrawerClose,
@@ -8,11 +8,13 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "./ui/drawer";
-import { FiSliders } from "react-icons/fi";
+} from './ui/drawer'
+import { FiSliders } from 'react-icons/fi'
 //import Filters from ".";
-
-const MobileFilters = () => {
+import Filters from '../app/(frontend)/products/Filters'
+import { getAllCategories } from '@/actions/productAction'
+const MobileFilters = async () => {
+  const categories = await getAllCategories()
   return (
     <>
       <Drawer>
@@ -34,12 +36,12 @@ const MobileFilters = () => {
             <DrawerDescription className="hidden">filters</DrawerDescription>
           </DrawerHeader>
           <div className="max-h-[90%] overflow-y-auto w-full px-5 md:px-6 py-5 space-y-5 md:space-y-6">
-            {/* <Filters /> */}
+            <Filters categories={categories} />
           </div>
         </DrawerContent>
       </Drawer>
     </>
-  );
-};
+  )
+}
 
-export default MobileFilters;
+export default MobileFilters
