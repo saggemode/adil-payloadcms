@@ -1,5 +1,4 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
-import moment from 'moment-timezone'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import sharp from 'sharp' // sharp-import
