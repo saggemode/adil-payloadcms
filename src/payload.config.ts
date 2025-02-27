@@ -77,39 +77,39 @@ export default buildConfig({
     //   defaultTimezone: 'Africa/Lagos',
     // },
 
-    // timezones: {
-    //   supportedTimezones: () => {
-    //     // Get all time zones using Intl.DateTimeFormat
-    //     const timeZones = Intl.DateTimeFormat().resolvedOptions().timeZone
-
-    //     // Format time zones (this example assumes a single time zone; you can expand it)
-    //     const formattedTimeZones = [
-    //       {
-    //         label: `(GMT${new Date().toLocaleTimeString('en', { timeZoneName: 'shortOffset', timeZone: timeZones })}`,
-    //         value: timeZones,
-    //       },
-    //     ]
-
-    //     return formattedTimeZones
-    //   },
-    //   defaultTimezone: 'Africa/Lagos', // Set a default time zone
-    // },
-
     timezones: {
       supportedTimezones: () => {
-        // Get all time zones using moment-timezone
-        const allTimeZones = moment.tz.names()
+        // Get all time zones using Intl.DateTimeFormat
+        const timeZones = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-        // Map time zones to the required format
-        const formattedTimeZones = allTimeZones.map((tz) => ({
-          label: `(GMT${moment.tz(tz).format('Z')}) ${tz}`,
-          value: tz,
-        }))
+        // Format time zones (this example assumes a single time zone; you can expand it)
+        const formattedTimeZones = [
+          {
+            label: `(GMT${new Date().toLocaleTimeString('en', { timeZoneName: 'shortOffset', timeZone: timeZones })}`,
+            value: timeZones,
+          },
+        ]
 
         return formattedTimeZones
       },
       defaultTimezone: 'Africa/Lagos', // Set a default time zone
     },
+
+    // timezones: {
+    //   supportedTimezones: () => {
+    //     // Get all time zones using moment-timezone
+    //     const allTimeZones = moment.tz.names()
+
+    //     // Map time zones to the required format
+    //     const formattedTimeZones = allTimeZones.map((tz) => ({
+    //       label: `(GMT${moment.tz(tz).format('Z')}) ${tz}`,
+    //       value: tz,
+    //     }))
+
+    //     return formattedTimeZones
+    //   },
+    //   defaultTimezone: 'Africa/Lagos', // Set a default time zone
+    // },
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
