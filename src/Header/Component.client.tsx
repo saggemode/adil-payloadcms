@@ -21,7 +21,11 @@ interface HeaderClientProps {
 
 export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories }) => {
   /* Storing the value in a useState to avoid hydration errors */
-  const [theme, setTheme] = useState<string | null>(null)
+  // const [theme, setTheme] = useState<string | null>(null)
+  const [theme, setTheme] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? 'light' : null,
+  )
+
   const { headerTheme, setHeaderTheme } = useHeaderTheme()
   const pathname = usePathname()
 
@@ -59,13 +63,12 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories }) 
         <div className="flex items-center flex-wrap gap-3 overflow-hidden   max-h-[42px]">
           {Hdata.headerMenus.map((menu) => (
             <Link href={menu.href} key={menu.href} className="header-button !p-2">
-              {menu.name}
+              <span>{menu.name}</span>
             </Link>
           ))}
         </div>
         <HeaderNav data={data} />
       </div>
     </header>
-  
   )
 }
