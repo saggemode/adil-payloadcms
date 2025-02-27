@@ -1,6 +1,6 @@
 'use client'
 import { useHeaderTheme } from '@/providers/HeaderTheme'
-import { Link } from '@payloadcms/ui'
+//import { Link } from '@payloadcms/ui'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
@@ -12,6 +12,7 @@ import Menu from './menu'
 import Hdata from './data'
 import Search from './search'
 import Sidebar from './sidebar'
+import Link from 'next/link'
 
 interface HeaderClientProps {
   data: Header
