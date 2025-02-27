@@ -10,9 +10,11 @@ import {
   DrawerTrigger,
 } from './ui/drawer'
 import { FiSliders } from 'react-icons/fi'
-//import Filters from ".";
-import Filters from '../app/(frontend)/products/Filters'
+
+
 import { getAllCategories } from '@/actions/productAction'
+import Filters from '@/app/(frontend)/products/Filters'
+
 const MobileFilters = async () => {
   const categories = await getAllCategories()
   return (
