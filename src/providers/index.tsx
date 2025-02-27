@@ -14,8 +14,8 @@ export const Providers: React.FC<{
       <AuthProvider>
         <FilterProvider>
           <HeaderThemeProvider>
-            {/* {children} */}
-            <ClientProviders>{children}</ClientProviders>
+            {children}
+            {/* <ClientProviders>{children}</ClientProviders> */}
           </HeaderThemeProvider>
         </FilterProvider>
       </AuthProvider>
