@@ -82,7 +82,6 @@ export default async function Page({ params: paramsPromise }: Args) {
           <RenderHero {...hero} />
           <Gutter className="flex flex-col gap-[100px] mt-[100px] md:gap-[60px]">
             <Categories categories={categories} />
-            <h5>categories</h5>
           </Gutter>
         </section>
       ) : (
