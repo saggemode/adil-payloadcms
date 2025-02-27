@@ -62,7 +62,15 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories }) 
         <Sidebar categories={categories} />
         <div className="flex items-center flex-wrap gap-3 overflow-hidden   max-h-[42px]">
           {Hdata.headerMenus.map((menu) => (
-            <Link href={menu.href} key={menu.href} className="header-button !p-2">
+            <Link
+              href={menu.href}
+              key={menu.href}
+              className="header-button !p-2"
+              onClick={(e) => {
+                e.preventDefault()
+                console.log('Link clicked:', menu.href)
+              }}
+            >
               <span>{menu.name}</span>
             </Link>
           ))}
