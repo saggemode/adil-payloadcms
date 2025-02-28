@@ -15,7 +15,7 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
  import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
 import { ProductHero } from '@/heros/ProductHero'
  import { getRelatedProductsByCategory } from '@/actions/productAction'
- import ProductSlider from '@/components/ProductArchive/product-slider'
+//  import ProductSlider from '@/components/ProductArchive/product-slider'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -113,10 +113,10 @@ const relatedProducts =
             />
           )}
 
-          <ProductSlider
+          {/* <ProductSlider
             products={relatedProducts?.docs || []} // Extract the actual array
             title={`Best Sellers in ${category}`}
-          />
+          /> */}
         </div>
       </div>
        </Suspense>
