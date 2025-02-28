@@ -3,7 +3,7 @@
 import { Progress } from '@/components/ui/progress'
 import Rating from './rating'
 import { Separator } from '@/components/ui/separator'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 import {
   Popover,
   PopoverContent,
