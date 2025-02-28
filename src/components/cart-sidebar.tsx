@@ -1,6 +1,6 @@
 import useCartStore from '@/hooks/use-cart-store'
 
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 import React from 'react'
 
 import { ScrollArea } from '@/components/ui/scroll-area'
