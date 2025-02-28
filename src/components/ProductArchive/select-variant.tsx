@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Product } from '@/payload-types'
 
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Separator } from '../ui/separator'
 
