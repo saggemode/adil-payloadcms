@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 //import { Category, Media } from '@/payload-types'
 import { useFilter } from '@/providers/Filter'
 
