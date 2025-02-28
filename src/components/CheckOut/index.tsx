@@ -1,5 +1,5 @@
 'use client'
-import {  useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShippingAddress } from '@/types'
 import { createOrder } from '@/actions/orderAction'
@@ -16,7 +16,7 @@ import { DeliveryDateForm } from './DeliveryDateSection'
 import { CheckoutSummary } from './CheckoutSummary'
 import { Card, CardContent } from '../ui/card'
 import ProductPrice from '../ProductArchive/Price'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 import CheckoutFooter from './checkout-footer'
 
 const CheckoutForm = () => {
@@ -71,9 +71,8 @@ const CheckoutForm = () => {
         variant: 'default',
       })
       clearCart()
-       router.push(`/checkout/${res.data?.orderId}`)
-      
-      
+      router.push(`/checkout/${res.data?.orderId}`)
+
       //startRouteTransition(() => router.push(`/checkout/${res.data?.orderId}`))
     }
     setLoading(false)

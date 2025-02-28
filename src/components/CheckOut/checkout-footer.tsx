@@ -1,6 +1,6 @@
 
 import { APP_NAME } from '@/constants'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 
 import React from 'react'
 

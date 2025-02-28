@@ -1,4 +1,4 @@
- // 'use client'
+// 'use client'
 
 // import { useMemo } from 'react'
 // import { useForm, FormProvider } from 'react-hook-form'
@@ -176,16 +176,22 @@
 
 // export default ShippingAddressForm
 
-
 // components/ShippingAddressForm.tsx
 'use client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import {  ShippingAddressSchema } from '@/types/validator'
+import { ShippingAddressSchema } from '@/types/validator'
 import { ShippingAddress } from '@/types'
 
 interface ShippingAddressFormProps {

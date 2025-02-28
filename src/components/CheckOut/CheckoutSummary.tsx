@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 
 import ProductPrice from '@/components/ProductArchive/Price'
 import { APP_NAME } from '@/constants'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 
 interface CheckoutSummaryProps {
   isAddressSelected: boolean
