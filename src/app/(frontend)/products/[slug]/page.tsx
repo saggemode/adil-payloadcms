@@ -12,10 +12,10 @@ import type { Category, Product } from '@/payload-types'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
-// import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
+ import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
 import { ProductHero } from '@/heros/ProductHero'
 // import { getRelatedProductsByCategory } from '@/actions/productAction'
-// import ProductSlider from '@/components/ProductArchive/product-slider'
+ import ProductSlider from '@/components/ProductArchive/product-slider'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -105,13 +105,13 @@ const category =
       <div className="flex flex-col items-center pt-8">
         <div className="container">
           {/* <RichText className="max-w-[48rem] mx-auto" data={product.content} enableGutter={false} /> */}
-          {/* {product.relatedProducts && product.relatedProducts.length > 0 && (
+          {product.relatedProducts && product.relatedProducts.length > 0 && (
             <RelatedProducts
             
               className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
               docs={product.relatedProducts.filter((product) => typeof product === 'object')}
             />
-          )} */}
+          )}
 
           {/* <ProductSlider
             products={relatedProducts?.docs || []} // Extract the actual array
