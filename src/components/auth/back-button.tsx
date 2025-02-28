@@ -1,6 +1,6 @@
 'use client'
 
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 interface BackButtonProps {
