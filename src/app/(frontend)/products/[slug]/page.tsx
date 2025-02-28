@@ -14,7 +14,7 @@ import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
  import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
 import { ProductHero } from '@/heros/ProductHero'
-// import { getRelatedProductsByCategory } from '@/actions/productAction'
+ import { getRelatedProductsByCategory } from '@/actions/productAction'
  import ProductSlider from '@/components/ProductArchive/product-slider'
 
 export async function generateStaticParams() {
@@ -78,11 +78,11 @@ const category =
       ? product.categories[0]?.toString() || '' // Use the first category if it's an array
       : ''
 
-// const relatedProducts =
-//   (await getRelatedProductsByCategory({
-//     category,
-//     productId: product?.id ? String(product.id) : '',
-//   })) || []
+const relatedProducts =
+  (await getRelatedProductsByCategory({
+    category,
+    productId: product?.id ? String(product.id) : '',
+  })) || []
 
 
   //console.log('relatedP: ', relatedProducts)
@@ -113,10 +113,10 @@ const category =
             />
           )}
 
-          {/* <ProductSlider
+          <ProductSlider
             products={relatedProducts?.docs || []} // Extract the actual array
             title={`Best Sellers in ${category}`}
-          /> */}
+          />
         </div>
       </div>
        </Suspense>
