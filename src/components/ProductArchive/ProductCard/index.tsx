@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import useClickableCard from '@/utilities/useClickableCard'
-import { Link } from '@payloadcms/ui'
+
 import React from 'react'
 import AddToCart from '@/components/ProductArchive/add-to-cart'
 import { generateId, round2 } from '@/utilities/generateId'
@@ -12,6 +12,7 @@ import ProductImage from './ProductImage'
 import Rating from '../rating'
 import ProductPrice from '../Price'
 import { formatNumber } from '@/utilities/formatNumberWithDecimal'
+import Link from 'next/link'
 
 export type ProductCard = Pick<
   Product,
