@@ -13,7 +13,7 @@ import { useAuth } from '@/providers/Auth'
 import { cn } from '@/utilities/ui'
 
 import { ChevronDown } from 'lucide-react'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 
 export default  function UserButton() {
   const { user } = useAuth()

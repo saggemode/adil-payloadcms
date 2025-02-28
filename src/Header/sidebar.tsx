@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 import { X, ChevronRight, UserCircle, MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 // import { SignOut } from '@/lib/actions/user.actions'

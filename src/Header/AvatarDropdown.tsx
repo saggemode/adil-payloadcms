@@ -5,7 +5,7 @@ import { Fragment } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Clipboard, Heart, LogOut, Settings, User } from 'lucide-react'
 import { useAuth } from '@/providers/Auth'
-import { Link } from '@payloadcms/ui'
+import Link from 'next/link'
 
 export default function AvatarDropdown() {
   const { user } = useAuth()
