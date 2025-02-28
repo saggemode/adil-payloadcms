@@ -1,6 +1,5 @@
 import React from 'react'
-import { Link } from '@payloadcms/ui'
-
+import Link from 'next/link'
 
 import CategoryCard from './CategoryCard'
 //import { Category } from '@/payload-types'
