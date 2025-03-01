@@ -7,8 +7,6 @@ import React from 'react'
 import { Search } from '@/search/Component'
 import PageClient from './page.client'
 import { CardPostData } from '@/components/Card'
-import { ProductArchive } from '@/components/ProductArchive'
-import { ProductCard } from '@/components/ProductArchive/ProductCard'
 
 type Args = {
   searchParams: Promise<{
@@ -28,7 +26,6 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
       slug: true,
       categories: true,
       meta: true,
-      price: true,
     },
     // pagination: false reduces overhead if you don't need totalDocs
     pagination: false,
@@ -76,7 +73,7 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
       </div>
 
       {posts.totalDocs > 0 ? (
-        <ProductArchive products={posts.docs as ProductCard[]} />
+        <CollectionArchive posts={posts.docs as CardPostData[]} />
       ) : (
         <div className="container">No results found.</div>
       )}
@@ -86,6 +83,6 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
 
 export function generateMetadata(): Metadata {
   return {
-    title: `Auxdoriz building materials and construction`,
+    title: `auxdoriz  building material and construction`,
   }
 }
