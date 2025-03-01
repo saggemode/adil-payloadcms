@@ -28,6 +28,7 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
       slug: true,
       categories: true,
       meta: true,
+      price: true,
     },
     // pagination: false reduces overhead if you don't need totalDocs
     pagination: false,
@@ -85,6 +86,6 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
 
 export function generateMetadata(): Metadata {
   return {
-    title: `Payload Website Template Search`,
+    title: `Auxdoriz building materials and construction`,
   }
 }
