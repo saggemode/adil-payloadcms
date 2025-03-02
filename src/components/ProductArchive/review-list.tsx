@@ -60,67 +60,38 @@ export default function ReviewList({
   const [reviews, setReviews] = useState<IReviewDetails[]>([])
   const { ref, inView } = useInView({ triggerOnce: true })
 
-  
-const reload = async () => {
-  try {
-    const res = await getReviews({ productId: product.id.toString(), page: 1 })
+  const reload = async () => {
+    try {
+      const res = await getReviews({ productId: product.id.toString(), page: 1 })
 
-    // Transform data to match IReviewDetails
-    const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
-      ...review,
-      id: String(review.id), // Convert id to string
-      product: String(review.product), // Ensure product is a string
-      user: {
-        name:
-          typeof review.user === 'object' && review.user !== null
-            ? review.user.name || 'Anonymous' // Convert user to a string (fallback to 'Anonymous' if null/undefined)
-            : 'Anonymous',
-      },
-      isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
-    }))
+      // Transform data to match IReviewDetails
+      const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
+        ...review,
+        id: String(review.id), // Convert id to string
+        product: String(review.product), // Ensure product is a string
+        user: {
+          name:
+            typeof review.user === 'object' && review.user !== null
+              ? review.user.name || 'Anonymous' // Convert user to a string (fallback to 'Anonymous' if null/undefined)
+              : 'Anonymous',
+        },
+        isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
+      }))
 
-    setReviews(formattedReviews)
-    setTotalPages(res.totalPages)
-  } catch (err) {
-    toast({
-      variant: 'destructive',
-      description: 'Error in fetching reviews',
-    })
+      setReviews(formattedReviews)
+      setTotalPages(res.totalPages)
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        description: 'Error in fetching reviews',
+      })
+    }
   }
-}
 
-
-
-const loadMoreReviews = async () => {
-  if (totalPages !== 0 && page > totalPages) return
-  setLoadingReviews(true)
-  const res = await getReviews({ productId: String(product.id), page })
-
-  // Transform data to match IReviewDetails
-  const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
-    ...review,
-    id: String(review.id), // Convert id to string
-    product: String(review.product), // Ensure product is a string
-    user: {
-      name:
-        typeof review.user === 'object' && review.user !== null
-          ? review.user.name || 'Anonymous' // Convert user to a string (fallback to 'Anonymous' if null/undefined)
-          : 'Anonymous',
-    },
-    isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
-  }))
-
-  setReviews([...reviews, ...formattedReviews])
-  setTotalPages(res.totalPages)
-  setPage(page + 1)
-  setLoadingReviews(false)
-}
-  const [loadingReviews, setLoadingReviews] = useState(false)
-
-useEffect(() => {
-  const loadReviews = async () => {
+  const loadMoreReviews = async () => {
+    if (totalPages !== 0 && page > totalPages) return
     setLoadingReviews(true)
-    const res = await getReviews({ productId: product.id.toString(), page: 1 })
+    const res = await getReviews({ productId: String(product.id), page })
 
     // Transform data to match IReviewDetails
     const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
@@ -136,16 +107,42 @@ useEffect(() => {
       isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
     }))
 
-    setReviews(formattedReviews)
+    setReviews([...reviews, ...formattedReviews])
     setTotalPages(res.totalPages)
+    setPage(page + 1)
     setLoadingReviews(false)
   }
+  const [loadingReviews, setLoadingReviews] = useState(false)
 
-  if (inView) {
-    loadReviews()
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [inView])
+  useEffect(() => {
+    const loadReviews = async () => {
+      setLoadingReviews(true)
+      const res = await getReviews({ productId: product.id.toString(), page: 1 })
+
+      // Transform data to match IReviewDetails
+      const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
+        ...review,
+        id: String(review.id), // Convert id to string
+        product: String(review.product), // Ensure product is a string
+        user: {
+          name:
+            typeof review.user === 'object' && review.user !== null
+              ? review.user.name || 'Anonymous' // Convert user to a string (fallback to 'Anonymous' if null/undefined)
+              : 'Anonymous',
+        },
+        isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
+      }))
+
+      setReviews(formattedReviews)
+      setTotalPages(res.totalPages)
+      setLoadingReviews(false)
+    }
+
+    if (inView) {
+      loadReviews()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView])
 
   type CustomerReview = z.infer<typeof ReviewInputSchema>
   const form = useForm<CustomerReview>({
@@ -155,25 +152,25 @@ useEffect(() => {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
 
-const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
-  const res = await createUpdateReview({
-    data: { ...values, product: product.id }, // Pass product.id as a number
-    path: `/products/${product.slug}`,
-  })
+  const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
+    const res = await createUpdateReview({
+      data: { ...values, product: product.id }, // Pass product.id as a number
+      path: `/products/${product.slug}`,
+    })
 
-  if (!res.success) {
-    return toast({
-      variant: 'destructive',
+    if (!res.success) {
+      return toast({
+        variant: 'destructive',
+        description: res.message,
+      })
+    }
+
+    setOpen(false)
+    reload()
+    toast({
       description: res.message,
     })
   }
-
-  setOpen(false)
-  reload()
-  toast({
-    description: res.message,
-  })
-}
   const handleOpenForm = async () => {
     form.setValue('product', product.id)
     form.setValue('user', userId!)
@@ -298,7 +295,7 @@ const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
               <div>
                 Please{' '}
                 <Link
-                  href={`/sign-in?callbackUrl=/product/${product.slug}`}
+                  href={`/auth/login?callbackUrl=/product/${product.slug}`}
                   className="highlight-link"
                 >
                   sign in
