@@ -13,7 +13,7 @@
     font-weight: unset;
   }
 
-  /* :root {
+  :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -47,9 +47,9 @@
     --success: 196 52% 74%;
     --warning: 34 89% 85%;
     --error: 10 100% 86%;
-  } */
+  }
 
-  :root {
+  /* :root {
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
     --card: 0 0% 100%;
@@ -80,7 +80,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-  }
+  } */
 
   [data-theme='dark'] {
     /* --background: 0 0% 0%;
