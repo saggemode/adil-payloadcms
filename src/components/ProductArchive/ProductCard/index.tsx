@@ -6,7 +6,7 @@ import useClickableCard from '@/utilities/useClickableCard'
 import React from 'react'
 import AddToCart from '@/components/ProductArchive/add-to-cart'
 import { generateId, round2 } from '@/utilities/generateId'
-import { Product, Category } from '@/payload-types'
+import { Product, Category, Tag } from '@/payload-types'
 
 import ProductImage from './ProductImage'
 import Rating from '../rating'
@@ -75,6 +75,16 @@ export const Card: React.FC<{
     return 'Unknown Category'
   }
 
+   const getTagTitle = (tags: number | Tag | null | undefined) => {
+    if (Array.isArray(tags)) {
+      return tags.length > 0 ? tags[0].title : 'Unknown Tag'
+    }
+    if (typeof tags === 'object' && tags?.title) {
+      return tags.title
+    }
+    return 'Unknown Category'
+  }
+
   const searchParams = useSearchParams()
   const selectedColor =
     searchParams.get('color') ||
@@ -139,10 +149,7 @@ export const Card: React.FC<{
         <ProductPrice
           price={price ?? 0}
           listPrice={listPrice}
-          isDeal={
-            (Array.isArray(tags) && tags.includes('todays-deal')) ||
-            (typeof tags === 'string' && tags === 'todays-deal')
-          }
+          isDeal={getTagTitle(tags)}
           forListing={false}
         />
       </Link>

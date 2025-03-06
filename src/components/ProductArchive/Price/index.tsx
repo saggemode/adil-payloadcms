@@ -1,85 +1,137 @@
 'use client'
 
-import { cn } from "@/utilities/ui"
+import { cn } from '@/utilities/ui'
 
-
-
-const ProductPrice = ({
-  price,
-  className,
-  listPrice = 0,
-  isDeal = false,
-  forListing = true,
-  plain = false,
-  currencyCode = 'NGN',
-}: {
+interface ProductPriceProps {
   price: number
   isDeal?: boolean
   listPrice?: number
   className?: string
   forListing?: boolean
   plain?: boolean
-  currencyCode?: string
-}) => {
-  // const discountPercent = Math.round(100 - (price / listPrice) * 100)
-  const discountPercent = listPrice > 0 ? Math.abs(Math.round(100 - (price / listPrice) * 100)) : 0
-  const validCurrencyCodes = ['NGN', 'EUR', 'GBP']
-  const validatedCurrencyCode = validCurrencyCodes.includes(currencyCode.toUpperCase())
-    ? currencyCode.toUpperCase()
-    : 'NGN'
+  currencyCode?: 'NGN' | 'EUR' | 'GBP'
+}
 
-  const formattedPrice = `${new Intl.NumberFormat(undefined, {
+const CURRENCY_CODES = ['NGN', 'EUR', 'GBP'] as const
+const DEFAULT_CURRENCY = 'NGN'
+
+const formatCurrency = (amount: number, currencyCode: string) => {
+  return new Intl.NumberFormat(undefined, {
     style: 'currency',
-    currency: validatedCurrencyCode,
+    currency: currencyCode,
     currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(price)}`
+  }).format(amount)
+}
 
-  return plain ? (
-    formattedPrice
-  ) : listPrice == 0 ? (
-    <div className={cn('text-3xl', className)}>{formattedPrice}</div>
-  ) : isDeal ? (
-    <div className="space-y-2">
-      <div className="flex justify-center items-center gap-2">
-        <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
-          {discountPercent}% Off
-        </span>
-        <span className="text-red-700 text-xs font-bold">Limited time deal</span>
+const calculateDiscount = (price: number, listPrice: number): number => {
+  return listPrice > 0 ? Math.abs(Math.round(100 - (price / listPrice) * 100)) : 0
+}
+
+const ProductPrice: React.FC<ProductPriceProps> = ({
+  price,
+  className,
+  listPrice = 0,
+  isDeal = false,
+  forListing = true,
+  plain = false,
+  currencyCode = DEFAULT_CURRENCY,
+}) => {
+  const validatedCurrency = CURRENCY_CODES.includes(
+    currencyCode.toUpperCase() as (typeof CURRENCY_CODES)[number],
+  )
+    ? currencyCode.toUpperCase()
+    : DEFAULT_CURRENCY
+
+  const formattedPrice = formatCurrency(price, validatedCurrency)
+  const formattedListPrice = formatCurrency(listPrice, validatedCurrency)
+  const discountPercent = calculateDiscount(price, listPrice)
+
+  if (plain) return formattedPrice
+
+  if (listPrice === 0) {
+    return <div className={cn('text-3xl', className)}>{formattedPrice}</div>
+  }
+
+  if (isDeal) {
+    return (
+      <div className="space-y-2">
+        <DealBadge discount={discountPercent} />
+        <PriceComparison
+          currentPrice={formattedPrice}
+          originalPrice={formattedListPrice}
+          forListing={forListing}
+          className={className}
+        />
       </div>
-      <div className={`flex ${forListing && 'justify-center'} items-center gap-2`}>
-        <div className={cn('text-1xl', className)}>{formattedPrice}</div>
-        <div className="text-muted-foreground text-xs py-2">
-          Was:{' '}
-          <span className="line-through">{`${new Intl.NumberFormat(undefined, {
-            style: 'currency',
-            currency: validatedCurrencyCode,
-            currencyDisplay: 'narrowSymbol',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-          }).format(listPrice)}`}</span>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className="">
-      <div className="flex justify-center gap-3">
-        <div className="text-1xl text-orange-700">{discountPercent}%</div>
-        <div className={cn('text-1xl', className)}>{formattedPrice}</div>
-      </div>
-      <div className="text-muted-foreground text-xs py-2">
-        List price:{' '}
-        <span className="line-through">{`${new Intl.NumberFormat(undefined, {
-          style: 'currency',
-          currency: validatedCurrencyCode,
-          currencyDisplay: 'narrowSymbol',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(listPrice)}`}</span>
-      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1">
+      <RegularPriceDisplay
+        currentPrice={formattedPrice}
+        originalPrice={formattedListPrice}
+        discount={discountPercent}
+        className={className}
+      />
     </div>
   )
 }
+
+const DealBadge: React.FC<{ discount: number }> = ({ discount }) => (
+  <div className="flex justify-center items-center gap-2">
+    <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
+      {discount}% Off
+    </span>
+    <span className="text-red-700 text-xs font-bold">Limited time deal</span>
+  </div>
+)
+
+interface PriceComparisonProps {
+  currentPrice: string
+  originalPrice: string
+  forListing: boolean
+  className?: string
+}
+
+const PriceComparison: React.FC<PriceComparisonProps> = ({
+  currentPrice,
+  originalPrice,
+  forListing,
+  className,
+}) => (
+  <div className={`flex ${forListing ? 'justify-center' : ''} items-center gap-2`}>
+    <div className={cn('text-1xl', className)}>{currentPrice}</div>
+    <div className="text-muted-foreground text-xs py-2">
+      Was: <span className="line-through">{originalPrice}</span>
+    </div>
+  </div>
+)
+
+interface RegularPriceDisplayProps {
+  currentPrice: string
+  originalPrice: string
+  discount: number
+  className?: string
+}
+
+const RegularPriceDisplay: React.FC<RegularPriceDisplayProps> = ({
+  currentPrice,
+  originalPrice,
+  discount,
+  className,
+}) => (
+  <>
+    <div className="flex justify-center gap-3">
+      <div className="text-1xl text-orange-700">{discount}%</div>
+      <div className={cn('text-1xl', className)}>{currentPrice}</div>
+    </div>
+    <div className="text-muted-foreground text-xs py-2">
+      List price: <span className="line-through">{originalPrice}</span>
+    </div>
+  </>
+)
 
 export default ProductPrice

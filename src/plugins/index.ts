@@ -15,7 +15,7 @@ import { Page, Post, Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
 
 const generateTitle: GenerateTitle<Post | Page | Product> = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
+  return doc?.title ? `${doc.title} | Auxdoriz Ecommerce` : 'Auxdoriz Ecommerce'
 }
 
 const generateURL: GenerateURL<Post | Page | Product> = ({ doc }) => {

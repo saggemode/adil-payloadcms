@@ -8,9 +8,9 @@ import CheckoutForm from '@/components/CheckOut'
 
 export default async function CheckoutPage() {
   await getMeUser({
-    nullUserRedirect: `/login?error=${encodeURIComponent(
+    nullUserRedirect: `/auth/login?error=${encodeURIComponent(
       'You must be logged in to checkout.',
-    )}&redirect=${encodeURIComponent('/checkout')}`,
+    )}&redirect=${encodeURIComponent('/auth/login?callbackUrl=/checkout')}`,
   })
 
   // const { user } = useAuth()

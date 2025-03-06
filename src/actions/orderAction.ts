@@ -8,12 +8,10 @@ import { formatError, round2 } from '@/utilities/generateId'
 
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import {  OrderInputSchema } from '@/types/validator'
+import { OrderInputSchema } from '@/types/validator'
 import { paypal } from './paypal'
 import { Order, SupportedTimezones } from '@/payload-types'
 import { revalidatePath } from 'next/cache'
-
-
 
 export const calcDeliveryDateAndPrice = async ({
   items,
@@ -53,6 +51,8 @@ export const calcDeliveryDateAndPrice = async ({
   }
 }
 
+
+
 export const createOrder = async (clientSideCart: Cart) => {
   try {
     // console.log('createOrder called with cart:', clientSideCart)
@@ -60,12 +60,10 @@ export const createOrder = async (clientSideCart: Cart) => {
 
     if (!user) throw new Error('User not authenticated')
 
-   
     // Recalculate price and delivery date on the server
     const createdOrder = await createOrderFromCart(clientSideCart, user.id!.toString())
 
-    // console.log('Order created successfully:', createdOrder)
-
+ 
     return {
       success: true,
       message: 'Order placed successfully',
@@ -76,6 +74,8 @@ export const createOrder = async (clientSideCart: Cart) => {
     return { success: false, message: formatError(error) }
   }
 }
+
+
 
 export const createOrderFromCart = async (clientSideCart: Cart, userId: string) => {
   // Convert `product` from string to number
@@ -99,6 +99,7 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
       items: processedItems, // Use the processed items here
       shippingAddress: clientSideCart.shippingAddress,
       deliveryDateIndex: clientSideCart.deliveryDateIndex,
+      
     })),
   }
 
@@ -123,6 +124,8 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
       : new Date().toISOString(),
     //expectedDeliveryDate_tz: Intl.DateTimeFormat().resolvedOptions().timeZone, // Add timezone
     expectedDeliveryDate_tz: 'Africa/Lagos' as SupportedTimezones,
+    couponCode: cart.couponCode, // Add coupon code
+    discountAmount: cart.discountAmount, // Add discount amount
   }
 
   // Validate input using your schema
@@ -142,11 +145,7 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
     'totalPrice',
     'expectedDeliveryDate',
   ]
-  // requiredFields.forEach((field) => {
-  //   if (!validatedOrderData[field]) {
-  //     console.error(`Missing required field: ${field}`)
-  //   }
-  // })
+
   requiredFields.forEach((field) => {
     if (!(validatedOrderData as Record<string, any>)[field]) {
       console.error(`Missing required field: ${field}`)
@@ -154,8 +153,7 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
   })
 
   try {
-    //console.log('Creating order with data:', validatedOrderData)
-
+  
     // Create order in Payload collection
     const payload = await getPayload({ config: configPromise })
     const order = await payload.create({
@@ -164,7 +162,7 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
     })
 
     //console.log('Order created in Payload:', order)
-  
+
     return order
   } catch (error) {
     console.error('Error creating order in Payload:', error)
@@ -172,12 +170,10 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
   }
 }
 
-
-
 export async function getOrderById(orderId: string): Promise<Order> {
   try {
     // Fetch the order using Payload's findByID method
-     const payload = await getPayload({ config: configPromise })
+    const payload = await getPayload({ config: configPromise })
     const order = await payload.findByID({
       collection: 'orders', // Name of the collection
       id: orderId, // Order ID
@@ -196,7 +192,7 @@ export async function getOrderById(orderId: string): Promise<Order> {
 
 export async function updateOrderToPaid(orderId: string) {
   try {
-     const payload = await getPayload({ config: configPromise })
+    const payload = await getPayload({ config: configPromise })
     const order = await payload.update({
       collection: 'orders',
       id: orderId,
@@ -218,7 +214,7 @@ export async function updateOrderToPaid(orderId: string) {
 
 export async function deliverOrder(orderId: string) {
   try {
-     const payload = await getPayload({ config: configPromise })
+    const payload = await getPayload({ config: configPromise })
     const order = await payload.update({
       collection: 'orders',
       id: orderId,
@@ -240,7 +236,7 @@ export async function deliverOrder(orderId: string) {
 
 export async function deleteOrder(id: string) {
   try {
-     const payload = await getPayload({ config: configPromise })
+    const payload = await getPayload({ config: configPromise })
     await payload.delete({
       collection: 'orders',
       id,
@@ -252,35 +248,17 @@ export async function deleteOrder(id: string) {
   }
 }
 
-// export async function getMyOrders({ limit, page }: { limit?: number; page: number }) {
-//   const { user } = await getMeUser()
-//    const payload = await getPayload({ config: configPromise })
-//   if (!user) throw new Error('User not authenticated')
-    
-
-//   const orders = await payload.find({
-//     collection: 'orders',
-//     where: {  user.id },
-//     limit,
-//     page,
-//   })
-
-//   return {
-//     data: orders.docs,
-//     totalPages: orders.totalPages,
-//   }
-// }
 
 export async function getMyOrders({ limit = PAGE_SIZE, page }: { limit?: number; page: number }) {
-   const payload = await getPayload({ config: configPromise })
-const { user } = await getMeUser()
+  const payload = await getPayload({ config: configPromise })
+  const { user } = await getMeUser()
 
   if (!user) {
     throw new Error('User is not authenticated')
   }
 
   const skipAmount = (page - 1) * limit
-   limit = limit || PAGE_SIZE
+  limit = limit || PAGE_SIZE
 
   const { docs: orders, totalDocs } = await payload.find({
     collection: 'orders',
@@ -300,11 +278,9 @@ const { user } = await getMeUser()
   }
 }
 
-
-
 export async function createPayPalOrder(orderId: string) {
   try {
-     const payload = await getPayload({ config: configPromise })
+    const payload = await getPayload({ config: configPromise })
     const order = await payload.findByID({
       collection: 'orders',
       id: orderId,
@@ -343,7 +319,7 @@ export async function approvePayPalOrder(orderId: string, data: { orderID: strin
   try {
     // Find the order from the Payload "orders" collection.
     // Adjust the depth as needed if you want to include related user data.
- const payload = await getPayload({ config: configPromise })
+    const payload = await getPayload({ config: configPromise })
     const order = await payload.findByID({
       collection: 'orders',
       id: orderId,

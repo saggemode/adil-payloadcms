@@ -15,8 +15,7 @@ export const GET = async (request: NextRequest) => {
   const categories = categoriesParam.split(',')
 
   // Initialize Payload client
-const payload = await getPayload({ config: configPromise })
-
+  const payload = await getPayload({ config: configPromise })
 
   let products
 
@@ -31,18 +30,20 @@ const payload = await getPayload({ config: configPromise })
 
     // Sort products based on the order of IDs in the request
     //products = productIds.map((id) => docs.find((product) => product.id === id)).filter(Boolean) // Remove undefined values
-  products = productIds
-    .map((id) => docs.find((product) => product.id === Number(id)))
-    .filter(Boolean)
-  
+    products = productIds
+      .map((id) => docs.find((product) => product.id === Number(id)))
+      .filter(Boolean)
   } else {
     // Fetch products by categories and exclude products with IDs in the list
     const { docs } = await payload.find({
-      collection: 'products', // Replace with your collection name
+      collection: 'products',
       where: {
-        category: { in: categories }, // Filter by categories
-        id: { not_in: productIds }, // Exclude products with IDs in the list
+        categories: { in: categories }, // Changed from category to categories
+        ...(productIds.length > 0 && {
+          id: { not_in: productIds },
+        }),
       },
+      limit: 4,
     })
 
     products = docs

@@ -27,7 +27,6 @@ export const OrderItemSchema = z.object({
   color: z.string().optional(),
 })
 
-
 export const ShippingAddressSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   street: z.string().min(1, 'Address is required'),
@@ -49,8 +48,10 @@ export const CartSchema = z.object({
   shippingAddress: z.optional(ShippingAddressSchema),
   deliveryDateIndex: z.optional(z.number()),
   expectedDeliveryDate: z.optional(z.date()),
-})
 
+  couponCode: z.string().optional(), // Add this field
+  discountAmount: z.number().optional(), //
+})
 
 export const OrderInputSchema = z.object({
   user: z.number(),
@@ -77,9 +78,10 @@ export const OrderInputSchema = z.object({
   deliveredAt: z.string().optional(),
   isPaid: z.boolean().default(false),
   paidAt: z.string().optional(),
+
+  couponCode: z.string().optional(), // Add this field
+  discountAmount: z.number().optional(), // Add this field
 })
-
-
 
 export type OrderInput = {
   user: string
@@ -142,7 +144,6 @@ export const ReviewInputSchema = z.object({
     .max(5, 'Rating must be at most 5'),
 })
 
-
 export const ProductInputSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
   slug: z.string().min(3, 'Slug must be at least 3 characters'),
@@ -173,6 +174,3 @@ export const ProductInputSchema = z.object({
 export const ProductUpdateSchema = ProductInputSchema.extend({
   _id: z.string(),
 })
-
-
-

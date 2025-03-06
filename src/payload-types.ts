@@ -7,16 +7,6 @@
  */
 
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CartItems".
- */
-export type CartItems =
-  | {
-      quantity?: number | null;
-      id?: string | null;
-    }[]
-  | null;
-/**
  * Supported timezones in IANA format.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -88,6 +78,8 @@ export interface Config {
     orders: Order;
     products: Product;
     reviews: Review;
+    addresses: Address;
+    coupons: Coupon;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -111,6 +103,8 @@ export interface Config {
     orders: OrdersSelect<false> | OrdersSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    addresses: AddressesSelect<false> | AddressesSelect<true>;
+    coupons: CouponsSelect<false> | CouponsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -399,22 +393,10 @@ export interface Category {
  */
 export interface User {
   id: number;
+  addresses?: (number | Address)[] | null;
   name?: string | null;
   roles?: ('admin' | 'customer' | 'moderator')[] | null;
   stripeCustomerID?: string | null;
-  cart?: {
-    items?: CartItems;
-    itemsPrice?: number | null;
-    taxPrice?: number | null;
-    shippingPrice?: number | null;
-    totalPrice?: number | null;
-    paymentMethod?: string | null;
-    shippingAddress?: string | null;
-    deliveryDateIndex?: string | null;
-    deliveryDateIndex_tz?: SupportedTimezones;
-    expectedDeliveryDate?: string | null;
-    expectedDeliveryDate_tz?: SupportedTimezones;
-  };
   skipSync?: boolean | null;
   updatedAt: string;
   createdAt: string;
@@ -426,6 +408,26 @@ export interface User {
   loginAttempts?: number | null;
   lockUntil?: string | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "addresses".
+ */
+export interface Address {
+  id: number;
+  user: number | User;
+  fullName: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  province: string;
+  phone: string;
+  isDefault?: boolean | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -816,6 +818,7 @@ export interface Tag {
 export interface Order {
   id: number;
   user: number | User;
+  coupon?: (number | null) | Coupon;
   items?:
     | {
         product: number | Product;
@@ -832,6 +835,7 @@ export interface Order {
         id?: string | null;
       }[]
     | null;
+  address?: (number | null) | Address;
   shippingAddress: {
     fullName: string;
     street: string;
@@ -842,7 +846,7 @@ export interface Order {
     phone: string;
   };
   expectedDeliveryDate: string;
-  expectedDeliveryDate_tz: string;
+  expectedDeliveryDate_tz?: string | null;
   paymentMethod: string;
   paymentResult?: {
     id?: string | null;
@@ -863,6 +867,26 @@ export interface Order {
   createdAt: string;
   createdAt_tz?: SupportedTimezones;
   updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons".
+ */
+export interface Coupon {
+  id: number;
+  code: string;
+  discountPercent: number;
+  startDate: string;
+  startDate_tz: SupportedTimezones;
+  endDate: string;
+  endDate_tz: SupportedTimezones;
+  usageLimit: number;
+  usageCount?: number | null;
+  orders?: (number | Order)[] | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1172,6 +1196,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'addresses';
+        value: number | Address;
+      } | null)
+    | ({
+        relationTo: 'coupons';
+        value: number | Coupon;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1520,24 +1552,10 @@ export interface CategoriesSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  addresses?: T;
   name?: T;
   roles?: T;
   stripeCustomerID?: T;
-  cart?:
-    | T
-    | {
-        items?: T | CartItemsSelect<T>;
-        itemsPrice?: T;
-        taxPrice?: T;
-        shippingPrice?: T;
-        totalPrice?: T;
-        paymentMethod?: T;
-        shippingAddress?: T;
-        deliveryDateIndex?: T;
-        deliveryDateIndex_tz?: T;
-        expectedDeliveryDate?: T;
-        expectedDeliveryDate_tz?: T;
-      };
   skipSync?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1548,14 +1566,6 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CartItems_select".
- */
-export interface CartItemsSelect<T extends boolean = true> {
-  quantity?: T;
-  id?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1600,6 +1610,7 @@ export interface TagsSelect<T extends boolean = true> {
  */
 export interface OrdersSelect<T extends boolean = true> {
   user?: T;
+  coupon?: T;
   items?:
     | T
     | {
@@ -1616,6 +1627,7 @@ export interface OrdersSelect<T extends boolean = true> {
         color?: T;
         id?: T;
       };
+  address?: T;
   shippingAddress?:
     | T
     | {
@@ -1712,6 +1724,44 @@ export interface ReviewsSelect<T extends boolean = true> {
   rating?: T;
   title?: T;
   comment?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "addresses_select".
+ */
+export interface AddressesSelect<T extends boolean = true> {
+  user?: T;
+  fullName?: T;
+  street?: T;
+  city?: T;
+  postalCode?: T;
+  country?: T;
+  province?: T;
+  phone?: T;
+  isDefault?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons_select".
+ */
+export interface CouponsSelect<T extends boolean = true> {
+  code?: T;
+  discountPercent?: T;
+  startDate?: T;
+  startDate_tz?: T;
+  endDate?: T;
+  endDate_tz?: T;
+  usageLimit?: T;
+  usageCount?: T;
+  orders?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }

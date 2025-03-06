@@ -1,5 +1,4 @@
-
-import {  buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,21 +8,38 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/providers/Auth'
-//import { SignOut } from '@/lib/actions/user.actions'
 import { cn } from '@/utilities/ui'
 
 import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 
-export default  function UserButton() {
-  const { user } = useAuth()
+const getGreeting = () => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+export default function UserButton() {
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
   return (
     <div className="flex gap-2 items-center">
       <DropdownMenu>
         <DropdownMenuTrigger className="header-button" asChild>
           <div className="flex items-center">
             <div className="flex flex-col text-xs text-left">
-              <span>Hello, {user ? user.name : 'sign in'}</span>
+              <span>
+                {getGreeting()}, {user ? user.name : 'sign in'}
+              </span>
               <span className="font-bold">Account & Orders</span>
             </div>
             <ChevronDown />
@@ -38,32 +54,23 @@ export default  function UserButton() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuGroup>
-              <Link className="w-full" href="/account">
+              <Link className="w-full" href="/account" prefetch={true}>
                 <DropdownMenuItem>Your account</DropdownMenuItem>
               </Link>
-              <Link className="w-full" href="/account/orders">
+              <Link className="w-full" href="/account/orders" prefetch={true}>
                 <DropdownMenuItem>Your orders</DropdownMenuItem>
               </Link>
 
               {user.roles?.includes('admin') && (
-                <Link className="w-full" href="/admin">
+                <Link className="w-full" href="/admin" prefetch={true}>
                   <DropdownMenuItem>Admin</DropdownMenuItem>
                 </Link>
               )}
 
-              {/* {Array.isArray(user.roles) && user.roles.includes('admin') && (
-                <Link className="w-full" href="/admin">
-                  <DropdownMenuItem>Admin</DropdownMenuItem>
-                </Link>
-              )} */}
+              <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+                Sign out
+              </DropdownMenuItem>
             </DropdownMenuGroup>
-            {/* <DropdownMenuItem className="p-0 mb-1">
-              <form action={logout} className="w-full">
-                <Button className="w-full py-4 px-2 h-4 justify-start" variant="ghost">
-                  Sign out
-                </Button>
-              </form>
-            </DropdownMenuItem> */}
           </DropdownMenuContent>
         ) : (
           <DropdownMenuContent className="w-56" align="end" forceMount>

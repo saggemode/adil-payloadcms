@@ -1,12 +1,5 @@
 import { admins } from '@/access/admins'
-// import { authenticated } from '../../access/authenticated'
-// import { Banner } from '../../blocks/Banner/config'
-// import { Code } from '../../blocks/Code/config'
-// import { MediaBlock } from '../../blocks/MediaBlock/config'
-// import { generatePreviewPath } from '../../utilities/generatePreviewPath'
-// import { CallToAction } from '@/blocks/CallToAction/config'
-// import { Content } from '@/blocks/Content/config'
-// import { Archive } from '@/blocks/ArchiveBlock/config'
+
 import { adminsOrOrderedBy } from './access/adminsOrOrderedBy'
 import { adminsOrLoggedIn } from '@/access/adminsOrLoggedIn'
 import type { CollectionConfig } from 'payload'
@@ -38,6 +31,13 @@ export const Orders: CollectionConfig = {
       //   beforeChange: [populateOrderedBy],
       // },
     },
+    {
+      name: 'coupon',
+      type: 'relationship',
+      relationTo: 'coupons',
+      hasMany: false,
+    },
+
     {
       name: 'items',
       type: 'array',
@@ -98,6 +98,15 @@ export const Orders: CollectionConfig = {
         },
       ],
     },
+
+    // shipping
+    {
+      name: 'address',
+      type: 'relationship',
+      relationTo: 'addresses',
+      //required: true,
+    },
+    // shipping addresses
     {
       name: 'shippingAddress',
       type: 'group',
@@ -143,12 +152,16 @@ export const Orders: CollectionConfig = {
       name: 'expectedDeliveryDate',
       type: 'date',
       required: true,
-      timezone: true,
+      admin: {
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
     },
     {
       name: 'expectedDeliveryDate_tz',
       type: 'text',
-      required: true,
+      required: false,
     },
     {
       name: 'paymentMethod',

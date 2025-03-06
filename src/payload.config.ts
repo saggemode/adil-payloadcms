@@ -24,6 +24,8 @@ import { Tags } from './collections/Tags'
 import { Orders } from './collections/Orders'
 import { Products } from './collections/Products'
 import { Reviews } from './collections/Review'
+import { Addresses } from './collections/Addresses'
+import { Coupons } from './collections/Coupons'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -104,6 +106,8 @@ export default buildConfig({
     Orders,
     Products,
     Reviews,
+    Addresses,
+    Coupons,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],

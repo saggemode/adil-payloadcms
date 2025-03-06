@@ -15,6 +15,7 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
  import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
 import { ProductHero } from '@/heros/ProductHero'
  import { getRelatedProductsByCategory } from '@/actions/productAction'
+import ProductDetailsSkeleton from './productSkeleton'
 //  import ProductSlider from '@/components/ProductArchive/product-slider'
 
 export async function generateStaticParams() {
@@ -92,34 +93,33 @@ const relatedProducts =
   return (
     <article className="pt-16 pb-16">
       {/* <PageClient /> */}
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<ProductDetailsSkeleton />}>
         <PageClient />
-    
-      {/* Allows redirects for valid pages too */}
-      <PayloadRedirects disableNotFound url={url} />
 
-      {draft && <LivePreviewListener />}
+        {/* Allows redirects for valid pages too */}
+        <PayloadRedirects disableNotFound url={url} />
 
-      <ProductHero product={product} />
+        {draft && <LivePreviewListener />}
 
-      <div className="flex flex-col items-center pt-8">
-        <div className="container">
-          {/* <RichText className="max-w-[48rem] mx-auto" data={product.content} enableGutter={false} /> */}
-          {product.relatedProducts && product.relatedProducts.length > 0 && (
-            <RelatedProducts
-            
-              className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
-              docs={product.relatedProducts.filter((product) => typeof product === 'object')}
-            />
-          )}
+        <ProductHero product={product} />
 
-          {/* <ProductSlider
+        <div className="flex flex-col items-center pt-8">
+          <div className="container">
+            {/* <RichText className="max-w-[48rem] mx-auto" data={product.content} enableGutter={false} /> */}
+            {product.relatedProducts && product.relatedProducts.length > 0 && (
+              <RelatedProducts
+                className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
+                docs={product.relatedProducts.filter((product) => typeof product === 'object')}
+              />
+            )}
+
+            {/* <ProductSlider
             products={relatedProducts?.docs || []} // Extract the actual array
             title={`Best Sellers in ${category}`}
           /> */}
+          </div>
         </div>
-      </div>
-       </Suspense>
+      </Suspense>
     </article>
   )
 }

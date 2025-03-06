@@ -33,47 +33,6 @@ export async function deleteProduct(id: any) {
   }
 }
 
-// GET ALL PRODUCTS FOR ADMIN
-// export async function getAllProductsForAdmin({ query, page = 1, sort = 'latest', limit }: any) {
-//   const payload = await getPayload({ config: configPromise })
-
-//   const filters = query ? { name: { like: query } } : {}
-//   const sortOrder =
-//     sort === 'best-selling'
-//       ? 'numSales'
-//       : sort === 'price-low-to-high'
-//         ? 'price'
-//         : sort === 'price-high-to-low'
-//           ? '-price'
-//           : '-createdAt'
-
-//   const products = await payload.find({
-//     collection: 'products',
-//     where: filters,
-//     sort: sortOrder,
-//     limit,
-//     page,
-//   })
-
-//   return products
-// }
-
-// GET PRODUCTS FOR CARD
-// export async function getProductsForCard({ tag, limit = 4 }) {
-//   const products = await payload.find({
-//     collection: 'products',
-//     where: { tags: { contains: tag }, isPublished: { equals: true } },
-//     sort: '-createdAt',
-//     limit,
-//   })
-//   return products.docs.map(({ name, slug, images }) => ({
-//     name,
-//     href: `/product/${slug}`,
-//     image: images?[0],
-//   }))
-// }
-
-// GET PRODUCTS BY TAG
 export async function getProductsByTag({ tag, limit = 10 }: any) {
   const payload = await getPayload({ config: configPromise })
 
@@ -173,51 +132,132 @@ export const queryProductBySlug = cache(async ({ slug }: { slug: string }) => {
   return result.docs?.[0] || null
 })
 
-// GET ALL PRODUCTS
-// export async function getAllProducts({ query, category, tag, price, rating, sort, limit, page }:any) {
-//     const payload = await getPayload({ config: configPromise })
+interface FilterOptions {
+  query?: string
+  category?: string
+  brand?: string
+  color?: string
+  size?: string
+  price?: string
+  rating?: string
+  sort?: string
+  limit?: number
+  page?: number
+}
 
-//   const filters = {
-//     ...(query && query !== 'all' && { title: { equals: query } }),
-//     ...(category && category !== 'all' && { category: { equals: category } }),
-//     ...(tag && tag !== 'all' && { tags: { contains: tag } }),
-//     ...(price &&
-//       price !== 'all' && {
-//         price: { gte: Number(price.split('-')[0]), lte: Number(price.split('-')[1]) },
-//       }),
-//     ...(rating && rating !== 'all' && { avgRating: { gte: Number(rating) } }),
-//   }
+export const getFilteredProducts = cache(
+  async ({
+    query,
+    category,
+    brand,
+    color,
+    size,
+    price,
+    rating,
+    sort = 'createdAt',
+    limit = 12,
+    page = 1,
+  }: FilterOptions) => {
+    const payload = await getPayload({ config: configPromise })
 
-//   const sortOrder =
-//     sort === 'best-selling'
-//       ? '-numSales'
-//       : sort === 'price-low-to-high'
-//         ? 'price'
-//         : sort === 'price-high-to-low'
-//           ? '-price'
-//           : '-createdAt'
+    // Build filter conditions
+    const filters: Record<string, any> = {
+      _status: {
+        equals: 'published',
+      },
+    }
 
-//   const products = await payload.find({
-//     collection: 'products',
-//     overrideAccess: true,
-//     select: {
-//       id: true,
-//       title: true,
-//       slug: true,
-//       categories: true,
-//       meta: true,
-//       images: true,
-//       price: true,
-//       listPrice: true,
-//       countInStock: true,
-//     },
-//     where: filters,
-//     sort: sortOrder,
-//     limit,
-//     page,
-//   })
-//   return products
-// }
+    // Text search
+    if (query && query !== 'all') {
+      filters.title = {
+        contains: query,
+      }
+    }
+
+    // Category filter
+    if (category && category !== 'all') {
+      filters.categories = {
+        equals: category,
+      }
+    }
+
+    // Brand filter
+    if (brand && brand !== 'all') {
+      filters.brands = {
+        equals: brand,
+      }
+    }
+
+    // Color filter
+    if (color && color !== 'all') {
+      filters.colors = {
+        contains: color,
+      }
+    }
+
+    // Size filter
+    if (size && size !== 'all') {
+      filters.sizes = {
+        contains: size,
+      }
+    }
+
+    // Price range filter
+    if (price && price !== 'all') {
+      const [min, max] = price.split('-').map(Number)
+      filters.price = {
+        greater_than_equal: min,
+        less_than_equal: max,
+      }
+    }
+
+    // Rating filter
+    if (rating && rating !== 'all') {
+      filters.avgRating = {
+        greater_than_equal: Number(rating),
+      }
+    }
+
+    // Define sort order
+    const sortOrder =
+      {
+        'best-selling': '-numSales',
+        'price-low-to-high': 'price',
+        'price-high-to-low': '-price',
+        'avg-customer-review': '-avgRating',
+        'newest-arrivals': '-createdAt',
+        'oldest-first': 'createdAt',
+      }[sort] || '-createdAt'
+
+    try {
+      const result = await payload.find({
+        collection: 'products',
+        where: filters,
+        sort: sortOrder,
+        limit,
+        page,
+        depth: 1, // Adjust depth as needed for related data
+      })
+
+      return {
+        success: true,
+        data: {
+          products: result.docs,
+          totalPages: result.totalPages,
+          currentPage: result.page,
+          hasNextPage: result.hasNextPage,
+          hasPrevPage: result.hasPrevPage,
+        },
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      return {
+        success: false,
+        error: 'Failed to fetch products',
+      }
+    }
+  },
+)
 
 export async function getAllProducts({
   query,
@@ -272,180 +312,22 @@ export async function getAllProducts({
   return products
 }
 
-// export async function getAllProducts({
-//   query,
-//   category,
-//   tag,
-//   price,
-//   rating,
-//   sort,
-//   limit,
-//   page,
-// }: {
-//   query: string
-//   category: string
-//   tag: string
-//   price: string
-//   rating: string
-//   sort: string
-//   limit?: number
-//   page: number
-// }) {
-//   const payload = await getPayload({ config: configPromise })
-
-//   // Build filters
-//   const filters = {
-//     ...(query && query !== 'all' && { name: { like: query } }), // Use 'like' for partial matches
-//     ...(category && category !== 'all' && { category: { equals: category } }),
-//     ...(tag && tag !== 'all' && { tags: { in: [tag] } }), // Use 'in' for array fields
-//     ...(price &&
-//       price !== 'all' && {
-//         price: {
-//           greater_than_equal: Number(price.split('-')[0]),
-//           less_than_equal: Number(price.split('-')[1]),
-//         },
-//       }),
-//     ...(rating && rating !== 'all' && { avgRating: { greater_than_equal: Number(rating) } }),
-//     isPublished: { equals: true }, // Only fetch published products
-//   }
-
-//   // Build sort order
-//   const sortOrder =
-//     sort === 'best-selling'
-//       ? '-numSales'
-//       : sort === 'price-low-to-high'
-//         ? 'price'
-//         : sort === 'price-high-to-low'
-//           ? '-price'
-//           : sort === 'avg-customer-review'
-//             ? '-avgRating'
-//             : '-createdAt'
-
-//   // Fetch products
-//   const products = await payload.find({
-//     collection: 'products',
-//     where: filters,
-//     sort: sortOrder,
-//     limit: limit || 12,
-//     page: page ,
-//     depth: 1, // Include related data
-//     select: {
-//       id: true,
-//       title: true,
-//       slug: true,
-//       categories: true,
-//       meta: true,
-//       images: true,
-//       price: true,
-//       listPrice: true,
-//       countInStock: true,
-//     },
-//   })
-
-//   return products
-// }
-
-// export async function getAllProducts({
-//   query,
-//   limit = PAGE_SIZE,
-//   page = 1,
-//   category,
-//   tag,
-//   price,
-//   rating,
-//   sort,
-// }: {
-//   query: string
-//   category: string
-//   tag: string
-//   limit?: number
-//   page: number
-//   price?: string
-//   rating?: string
-//   sort?: string
-// }) {
-//   const filters: Record<string, any> = {
-//     isPublished: { equals: true }, // Only fetch published products
-//     ...(query && query !== 'all' && { name: { like: query } }),
-//     ...(category && category !== 'all' && { category: { equals: category } }),
-//     ...(tag && tag !== 'all' && { tags: { contains: tag } }),
-//     ...(price &&
-//       price !== 'all' && {
-//         price: {
-//           greater_than_equal: Number(price.split('-')[0]),
-//           less_than_equal: Number(price.split('-')[1]),
-//         },
-//       }),
-//     ...(rating &&
-//       rating !== 'all' && {
-//         avgRating: { greater_than_equal: Number(rating) },
-//       }),
-//   }
-
-//   const sortOptions =
-//     sort === 'best-selling'
-//       ? '-numSales'
-//       : sort === 'price-low-to-high'
-//         ? 'price'
-//         : sort === 'price-high-to-low'
-//           ? '-price'
-//           : sort === 'avg-customer-review'
-//             ? '-avgRating'
-//             : '-_id' // Default sorting
-
-//     const payload = await getPayload({ config: configPromise })
-
-//   const { docs: products, totalDocs: totalProducts } = await payload.find({
-//     collection: 'products',
-//     where: filters,
-//     sort: sortOptions,
-//     limit,
-//     page,
-//         overrideAccess: true,
-//         select: {
-//           id: true,
-//           title: true,
-//           slug: true,
-//           categories: true,
-//           meta: true,
-//           images: true,
-//           price: true,
-//           listPrice: true,
-//           countInStock: true,
-//         },
-//   })
-
-//   return {
-//     products,
-//     totalPages: Math.ceil(totalProducts / limit),
-//     totalProducts,
-//     from: limit * (page - 1) + 1,
-//     to: limit * (page - 1) + products.length,
-//   }
-// }
-
-// GET ALL CATEGORIES
-
-// export async function getAllCategories(): Promise<Category[]> {
-//   const payload = await getPayload({ config: configPromise })
-
-//   const categories = await payload.find({ collection: 'categories' }) // Fetch from 'categories' collection
-//   return categories.docs as Category[] // ✅ Return full Category objects
-// }
-
 export async function getAllCategories() {
   const payload = await getPayload({ config: configPromise })
   const categories = await payload.find({ collection: 'categories' }) // Fetch from the 'categories' collection
   return categories.docs.map((doc) => doc.title) // Adjust based on the category field structure
+}
 
-  //   return categories.docs.map((doc) => ({
-  //    id: doc.id, // Ensure 'id' exists
-  //    title: doc.title, // Keep all necessary properties
-  //  }))
+export async function getAllSizes() {
+  const payload = await getPayload({ config: configPromise })
+  const sizes = await payload.find({ collection: 'sizes' }) // Fetch from the 'sizes' collection
+  return sizes.docs.map((doc) => doc.title) // Adjust based on the sizes field structure
+}
 
-  //return categories.docs as Category[] // Ensures the correct type is returned
-  //return (categories.docs || []) as Category[]
-  //return Array.isArray(categories.docs) ? (categories.docs as Category[]) : []
+export async function getAllColors() {
+  const payload = await getPayload({ config: configPromise })
+  const colors = await payload.find({ collection: 'colors' }) // Fetch from the 'colors' collection
+  return colors.docs.map((doc) => doc.title) // Adjust based on the colors field structure
 }
 
 // GET ALL TAGS

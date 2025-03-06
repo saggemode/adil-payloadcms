@@ -55,7 +55,7 @@ export default async function OrdersPage(props: { searchParams: Promise<{ page: 
               </TableRow>
             )}
             {orders.data.map((order: Order) => (
-              <TableRow key={order.id}>
+              <TableRow key={`order-${order.id}-${order.expectedDeliveryDate_tz}`}>
                 <TableCell>
                   <Link href={`/account/orders/${order.id}`}>{formatId(order.id.toString())}</Link>
                 </TableCell>
