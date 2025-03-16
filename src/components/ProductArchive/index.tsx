@@ -1,14 +1,13 @@
-
 import React from 'react'
-import { Card, ProductCard } from './ProductCard'
+import { Card } from './ProductCard' // Assuming Card is a component
+import { Product } from '@/payload-types' // Import the Product type
 
 export type Props = {
-  products: ProductCard[]
+  products: Product[] // Use the correct type here
 }
 
 export const ProductArchive: React.FC<Props> = (props) => {
   const { products } = props
-
 
   return (
     <>

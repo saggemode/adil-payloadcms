@@ -26,12 +26,12 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
 
   const searchParams = useSearchParams()
   const selectedColor =
-    searchParams.get('color') ||
+    searchParams?.get('color') ||
     (typeof product.colors?.[0] === 'object' && 'title' in product.colors[0]
       ? product.colors[0].title
       : '')
   const selectedSize =
-    searchParams.get('size') ||
+    searchParams?.get('size') ||
     (typeof product.sizes?.[0] === 'object' && 'title' in product.sizes[0]
       ? product.sizes[0].title
       : '')

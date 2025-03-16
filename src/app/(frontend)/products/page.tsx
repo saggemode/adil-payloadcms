@@ -53,7 +53,7 @@ export default async function Page({ searchParams }: ProductsPageProps) {
   const sizes = await getAllSizes()
   const colors = await getAllColors()
   const tags = await getAllTagExtra()
-  
+
   const filteredProducts = await getFilteredProducts({
     query,
     category,
@@ -109,6 +109,7 @@ export default async function Page({ searchParams }: ProductsPageProps) {
             <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
               <ProductArchive products={products} />
             </div>
+
             {totalPages > 1 && <ProductsPagination page={currentPage} totalPages={totalPages} />}
           </div>
         </div>

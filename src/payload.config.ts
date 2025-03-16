@@ -26,6 +26,7 @@ import { Products } from './collections/Products'
 import { Reviews } from './collections/Review'
 import { Addresses } from './collections/Addresses'
 import { Coupons } from './collections/Coupons'
+import { FlashSales } from './collections/FlashSales'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -81,17 +82,17 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
 
-  // db: sqliteAdapter({
-  //   client: {
-  //     url: process.env.DATABASE_URI || '',
-  //   },
-  // }),
-
-  db: vercelPostgresAdapter({
-    pool: {
-      connectionString: process.env.POSTGRES_URL || '',
+  db: sqliteAdapter({
+    client: {
+      url: process.env.DATABASE_URI || '',
     },
   }),
+
+  // db: vercelPostgresAdapter({
+  //   pool: {
+  //     connectionString: process.env.POSTGRES_URL || '',
+  //   },
+  // }),
 
   collections: [
     Pages,
@@ -108,6 +109,7 @@ export default buildConfig({
     Reviews,
     Addresses,
     Coupons,
+    FlashSales,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],

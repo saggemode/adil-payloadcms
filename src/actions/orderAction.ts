@@ -17,10 +17,12 @@ export const calcDeliveryDateAndPrice = async ({
   items,
   shippingAddress,
   deliveryDateIndex,
+  discountAmount = 0,
 }: {
   deliveryDateIndex?: number
   items: OrderItem[]
   shippingAddress?: ShippingAddress
+  discountAmount?: number
 }) => {
   const itemsPrice = round2(items.reduce((acc, item) => acc + item.price * item.quantity, 0))
 
@@ -37,8 +39,13 @@ export const calcDeliveryDateAndPrice = async ({
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15)
 
+  // Apply discount before calculating final total
+  const priceAfterDiscount = round2(Math.max(0, itemsPrice - discountAmount))
+
   const totalPrice = round2(
-    itemsPrice + (shippingPrice ? round2(shippingPrice) : 0) + (taxPrice ? round2(taxPrice) : 0),
+    priceAfterDiscount +
+      (shippingPrice ? round2(shippingPrice) : 0) +
+      (taxPrice ? round2(taxPrice) : 0),
   )
   return {
     AVAILABLE_DELIVERY_DATES,
@@ -51,8 +58,6 @@ export const calcDeliveryDateAndPrice = async ({
   }
 }
 
-
-
 export const createOrder = async (clientSideCart: Cart) => {
   try {
     // console.log('createOrder called with cart:', clientSideCart)
@@ -63,7 +68,6 @@ export const createOrder = async (clientSideCart: Cart) => {
     // Recalculate price and delivery date on the server
     const createdOrder = await createOrderFromCart(clientSideCart, user.id!.toString())
 
- 
     return {
       success: true,
       message: 'Order placed successfully',
@@ -75,9 +79,9 @@ export const createOrder = async (clientSideCart: Cart) => {
   }
 }
 
-
-
 export const createOrderFromCart = async (clientSideCart: Cart, userId: string) => {
+  const payload = await getPayload({ config: configPromise })
+
   // Convert `product` from string to number
   const processedItems = clientSideCart.items.map((item) => {
     const productId = typeof item.product === 'string' ? Number(item.product) : item.product
@@ -88,7 +92,7 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
 
     return {
       ...item,
-      product: productId, // Use the converted number
+      product: productId,
     }
   })
 
@@ -96,15 +100,31 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
   const cart = {
     ...clientSideCart,
     ...(await calcDeliveryDateAndPrice({
-      items: processedItems, // Use the processed items here
+      items: processedItems,
       shippingAddress: clientSideCart.shippingAddress,
       deliveryDateIndex: clientSideCart.deliveryDateIndex,
-      
+      discountAmount: clientSideCart.discountAmount || 0,
     })),
   }
 
   // Convert userId to a number
   const userIdNumber = parseInt(userId, 10)
+
+  // If there's a coupon code, find the coupon first
+  let couponId: number | undefined
+  if (cart.couponCode) {
+    const couponResult = await payload.find({
+      collection: 'coupons',
+      where: {
+        code: { equals: cart.couponCode },
+      },
+    })
+
+    const couponDoc = couponResult.docs[0]
+    if (couponDoc && typeof couponDoc.id === 'number') {
+      couponId = couponDoc.id
+    }
+  }
 
   // Prepare order data
   const orderData = {
@@ -122,46 +142,39 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
     expectedDeliveryDate: cart.expectedDeliveryDate
       ? cart.expectedDeliveryDate.toISOString()
       : new Date().toISOString(),
-    //expectedDeliveryDate_tz: Intl.DateTimeFormat().resolvedOptions().timeZone, // Add timezone
     expectedDeliveryDate_tz: 'Africa/Lagos' as SupportedTimezones,
-    couponCode: cart.couponCode, // Add coupon code
-    discountAmount: cart.discountAmount, // Add discount amount
+    couponCode: cart.couponCode,
+    discountAmount: cart.discountAmount,
+    coupon: couponId, // Add the coupon relationship
   }
 
   // Validate input using your schema
   const validatedOrderData = OrderInputSchema.parse(orderData)
 
-  console.log('Validated order data:', validatedOrderData)
-
-  // Check for missing required fields
-  const requiredFields = [
-    'user',
-    'items',
-    'shippingAddress',
-    'paymentMethod',
-    'itemsPrice',
-    'shippingPrice',
-    'taxPrice',
-    'totalPrice',
-    'expectedDeliveryDate',
-  ]
-
-  requiredFields.forEach((field) => {
-    if (!(validatedOrderData as Record<string, any>)[field]) {
-      console.error(`Missing required field: ${field}`)
-    }
-  })
-
   try {
-  
     // Create order in Payload collection
-    const payload = await getPayload({ config: configPromise })
     const order = await payload.create({
-      collection: 'orders', // Ensure this matches the slug in your collection definition
+      collection: 'orders',
       data: validatedOrderData,
     })
 
-    //console.log('Order created in Payload:', order)
+    // Update coupon usage count if a coupon was used
+    if (couponId) {
+      const coupon = await payload.findByID({
+        collection: 'coupons',
+        id: couponId,
+      })
+
+      if (coupon) {
+        await payload.update({
+          collection: 'coupons',
+          id: couponId,
+          data: {
+            usageCount: (coupon.usageCount || 0) + 1,
+          },
+        })
+      }
+    }
 
     return order
   } catch (error) {
@@ -202,9 +215,9 @@ export async function updateOrderToPaid(orderId: string) {
       },
     })
 
-    // if (order.user) {
-    //   await sendPurchaseReceipt({ order })
-    // }
+    // Revalidate both the orders list and the specific order page
+    revalidatePath('/admin/orders')
+    revalidatePath(`/admin/orders/${orderId}`)
 
     return { success: true, message: 'Order paid successfully' }
   } catch (err) {
@@ -215,6 +228,36 @@ export async function updateOrderToPaid(orderId: string) {
 export async function deliverOrder(orderId: string) {
   try {
     const payload = await getPayload({ config: configPromise })
+
+    // First get the order to access its items
+    const existingOrder = await payload.findByID({
+      collection: 'orders',
+      id: orderId,
+    })
+
+    if (!existingOrder?.items) {
+      throw new Error('Order items not found')
+    }
+
+    // Update each product's stock and sales
+    for (const item of existingOrder.items) {
+      const productId = typeof item.product === 'number' ? item.product : item.product.id
+      const product = await payload.findByID({
+        collection: 'products',
+        id: productId,
+      })
+
+      await payload.update({
+        collection: 'products',
+        id: productId,
+        data: {
+          countInStock: product.countInStock - item.quantity,
+          numSales: (product.numSales || 0) + item.quantity,
+        },
+      })
+    }
+
+    // Update order status
     const order = await payload.update({
       collection: 'orders',
       id: orderId,
@@ -224,11 +267,11 @@ export async function deliverOrder(orderId: string) {
       },
     })
 
-    // if (order.user) {
-    //   await sendAskReviewOrderItems({ order })
-    // }
+    // Revalidate both the orders list and the specific order page
+    revalidatePath('/admin/orders')
+    revalidatePath(`/admin/orders/${orderId}`)
 
-    return { success: true, message: 'Order delivered successfully' }
+    return { success: true, message: 'Order delivered and inventory updated successfully' }
   } catch (err) {
     return { success: false, message: formatError(err) }
   }
@@ -247,7 +290,6 @@ export async function deleteOrder(id: string) {
     return { success: false, message: formatError(error) }
   }
 }
-
 
 export async function getMyOrders({ limit = PAGE_SIZE, page }: { limit?: number; page: number }) {
   const payload = await getPayload({ config: configPromise })

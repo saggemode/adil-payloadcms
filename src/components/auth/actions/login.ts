@@ -1,5 +1,3 @@
-
-
 import { LoginSchema, LoginSchemaType } from '@/schemas'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
@@ -40,7 +38,7 @@ export const login = async (values: LoginSchemaType, callbackUrl?: string | null
     return {
       success: true,
       user: loggedInUser,
-      redirectTo: callbackUrl || '/dashboard',
+      redirectTo: callbackUrl || '/',
     }
   } catch (_error) {
     return { error: 'Invalid credentials!' }

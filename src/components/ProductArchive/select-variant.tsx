@@ -16,8 +16,8 @@ export default function SelectVariant({
   size: string
 }) {
   const searchParams = useSearchParams()
-  const currentColor = searchParams.get('color') || color || String(product.colors?.[0] ?? '')
-  const currentSize = searchParams.get('size') || size || String(product.sizes?.[0] ?? '')
+  const currentColor = searchParams?.get('color') || color || String(product.colors?.[0] ?? '')
+  const currentSize = searchParams?.get('size') || size || String(product.sizes?.[0] ?? '')
 
   return (
     <>

@@ -29,7 +29,7 @@ import { useAuth } from '@/providers/Auth'
 
 const LoginForm = () => {
   const searchParams = useSearchParams()
-  const allParams = searchParams.toString() ? `?${searchParams.toString()}` : ''
+  const allParams = searchParams?.toString() ? `?${searchParams?.toString()}` : ''
 
   const { login } = useAuth()
   const router = useRouter()
@@ -60,7 +60,7 @@ const LoginForm = () => {
     startTransition(async () => {
       try {
         await login(values)
-        const redirect = searchParams.get('redirect')
+        const redirect = searchParams?.get('redirect')
         router.push(redirect || '/')
       } catch {
         setError('There was an issue with login. Please try again.')

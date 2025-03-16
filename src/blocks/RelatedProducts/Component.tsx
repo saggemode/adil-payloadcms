@@ -4,11 +4,12 @@ import RichText from '@/components/RichText'
 import { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 
 
-import { Card, ProductCard } from '@/components/ProductArchive/ProductCard'
+import { Card } from '@/components/ProductArchive/ProductCard'
+import { Product } from '@/payload-types'
 
 export type RelatedProductsProps = {
   className?: string
-  docs?: ProductCard[]
+  docs?: Product[]
   introContent?: SerializedEditorState
 }
 

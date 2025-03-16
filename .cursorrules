@@ -1,146 +1,98 @@
-# Cursor Rules
-
-## Instructions
-
-- Record fixes for mistakes or corrections to avoid repetition in the `Lessons` section.
-- Organize thoughts and plan steps before starting a task in the `Scratchpad` section.
-- Clear old tasks if necessary.
-- Use todo markers for progress tracking:
-  - `[X]` Completed tasks
-  - `[ ]` Pending tasks
-- Update Scratchpad after completing subtasks.
-- Reflect and plan after milestones for better task management.
-- Always refer to Scratchpad before planning the next step.
-
-## Lessons
-
-1. Use `npx shadcn@latest add [component]` instead of `npx shadcn-ui@latest add [component]` when installing Shadcn UI components.
-2. In Next.js 14+, page props params must be typed as a Promise. Example:
-   ```typescript
-   type tParams = Promise<{ id: string }>
-   interface PageProps {
-     params: tParams
-   }
-   ```
-   Then await the params in the component:
-   ```typescript
-   export default async function Page(props: PageProps) {
-     const { id } = await props.params
-   }
-   ```
-3. Use `const session = await auth()` instead of `const session = await getServerSession(authOptions)` for Next.js authentication. The new `auth()` function is the recommended way to get the session in Next.js Auth v5.
-4. When importing `useRouter` from 'next/navigation', the component must be marked as a client component using the `'use client'` directive at the top of the file, as this hook only works on the client side.
-
 ## Scratchpad
 
+### 4. Admin Dashboard [ ]
 
-#### 1. Project Setup & Configuration
-- [X] Initialize Next.js 15 project with TypeScript
-- [X] Set up project structure and folders
-- [X] Configure ESLint and Prettier
-- [X] Install and configure dependencies
-- [X] Set up PostgreSQL database
+- [x] Admin authentication and authorization
+- [ ] Dashboard overview:
+  - [x] Layout and Structure
+  - [x] Key Metrics Cards
+  - [x] Sales Analytics
+  - [x] Recent Orders Table
+  - [ ] Low Stock Alerts:
+    - [ ] Create alert threshold settings
+    - [ ] Implement real-time stock monitoring
+    - [ ] Add quick restock action buttons
+    - [ ] Create stock level visual indicators
+  - [ ] Top Products:
+    - [ ] Implement product performance analytics
+    - [ ] Create sortable revenue metrics
+    - [ ] Add stock status indicators
+    - [ ] Implement product trend analysis
+  - [ ] Customer Insights:
+    - [ ] Create customer segmentation analysis
+    - [ ] Implement customer lifetime value calculations
+    - [ ] Add customer behavior tracking
+    - [ ] Create customer retention metrics
+  - [ ] Real-time Updates:
+    - [ ] Set up WebSocket server
+    - [ ] Implement real-time order notifications
+    - [ ] Create live stock level updates
+    - [ ] Add real-time sales alerts
+  - [ ] Export and Reports:
+    - [ ] Implement CSV export functionality
+    - [ ] Add PDF report generation
+    - [ ] Create custom date range filters
+    - [ ] Add scheduled report automation
 
-#### 2. PayloadCMS Setup
-- [X] Configure Payload collections:
-  [X] Users (Authentication)
-  [X] Products
- [X] Categories
-  [X] Orders
-  [X] Reviews
-  [X] Cart
-  [X] Addresses
-  [X] Media
- [X] Coupons
+### 5. Advanced Features [ ]
 
-- [X] Set up Payload plugins:
-  [X] SEO plugin
-  [X] Form builder
-  [X] Search plugin
-  [X] Nested docs plugin
-  [X] Redirects plugin
+- [ ] Real-time notifications:
+  - [ ] Set up WebSocket connections
+  - [ ] Implement push notifications
+  - [ ] Create notification preferences system
+- [ ] Email system (Resend):
+  - [ ] Design email templates
+  - [ ] Set up email triggers
+  - [ ] Implement tracking and analytics
+- [ ] Search optimization:
+  - [ ] Implement full-text search
+  - [ ] Add faceted search
+  - [ ] Create search analytics
+- [ ] Performance optimization:
+  - [ ] Implement image lazy loading
+  - [ ] Set up CDN integration
+  - [ ] Configure Redis caching
+  - [ ] Optimize API response times
 
-#### 3. Authentication & Authorization
-- [X] Implement next-auth@beta integration
-- [X] Set up OAuth providers (Google, GitHub)
-- [X] Create user roles and permissions
-- [X] Implement protected routes
-- [X] Add session management
+### 6. Testing and Deployment [ ]
 
-#### 4. Product Management
-- [ ] Create product listing page
-- [ ] Implement product search and filtering
-- [ ] Add product categories navigation
-- [ ] Create product detail page
-- [ ] Implement product reviews and ratings
-- [ ] Add product image gallery with zoom
+- [ ] Unit testing:
+  - [ ] Set up Jest configuration
+  - [ ] Write component tests
+  - [ ] Create API endpoint tests
+- [ ] Integration testing:
+  - [ ] Set up testing environment
+  - [ ] Create end-to-end test scenarios
+  - [ ] Implement API integration tests
+- [ ] E2E testing:
+  - [ ] Set up Cypress/Playwright
+  - [ ] Create user flow tests
+  - [ ] Test payment integration
+- [ ] Security audit:
+  - [ ] Perform vulnerability assessment
+  - [ ] Implement security best practices
+  - [ ] Set up monitoring and logging
+- [ ] Production deployment:
+  - [ ] Configure production environment
+  - [ ] Set up CI/CD pipeline
+  - [ ] Implement monitoring tools
+  - [ ] Create backup strategy
 
-#### 5. Shopping Cart
-- [ ] Set up Zustand store for cart management
-- [ ] Create cart UI components
-- [ ] Implement add/remove/update cart items
-- [ ] Add cart persistence
-- [ ] Create cart summary
+### 7. Documentation [ ]
 
-#### 6. Checkout Process
-- [ ] Create multi-step checkout flow
-- [ ] Implement address management
-- [ ] Add delivery date selection
-- [ ] Set up payment integrations:
-  - PayPal
-  - Stripe
-  - Opay
-  - MoniePoint
-- [ ] Order confirmation and email notifications
-
-#### 7. User Dashboard
-- [ ] Create account dashboard
-- [ ] Order history and tracking
-- [ ] Address book management
-- [ ] Review management
-- [ ] Wishlist functionality
-
-#### 8. Admin Dashboard
-- [ ] Create admin dashboard layout
-- [ ] Order management interface
-- [ ] Product management
-- [ ] User management
-- [ ] Analytics with Recharts
-- [ ] Inventory management
-
-#### 9. Media & Storage
-- [ ] Configure Vercel Blob storage
-- [ ] Set up image optimization
-- [ ] Implement media library
-- [ ] Add image upload functionality
-
-#### 10. Performance & Optimization
-- [ ] Implement caching strategies
-- [ ] Add loading states
-- [ ] Optimize images and assets
-- [ ] Add error boundaries
-- [ ] Implement infinite scrolling
-
-#### 11. Testing & Deployment
-- [ ] Write unit tests
-- [ ] Add integration tests
-- [ ] Set up CI/CD pipeline
-- [ ] Configure production environment
-- [ ] Deploy to Vercel
-
-#### 12. Additional Features
-- [ ] Add wishlist functionality
-- [ ] Implement product comparisons
-- [ ] Add related products
-- [ ] Create promotional system
-- [ ] Set up email notifications with Resend
-
-### Current Focus:
-Working on PayloadCMS collections setup and configuration
-
-### Notes:
-- Using Shadcn UI for consistent design
-- Implementing Zod for form validation
-- Using Zustand for state management
-- Integrating multiple payment providers
-- Following TypeScript best practices
+- [ ] API documentation:
+  - [ ] Create OpenAPI specifications
+  - [ ] Document authentication flows
+  - [ ] Write endpoint documentation
+- [ ] User guide:
+  - [ ] Create user onboarding guide
+  - [ ] Write feature documentation
+  - [ ] Add FAQ section
+- [ ] Admin documentation:
+  - [ ] Document dashboard features
+  - [ ] Create troubleshooting guide
+  - [ ] Write system maintenance procedures
+- [ ] Deployment guide:
+  - [ ] Document environment setup
+  - [ ] Create deployment checklist
+  - [ ] Write scaling guidelines

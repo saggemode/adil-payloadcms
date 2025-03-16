@@ -29,7 +29,7 @@ export const ResetPasswordForm = () => {
   const { login } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  //const token = searchParams?.get('token')
 
   const form = useForm<z.infer<typeof RecoverSchema>>({
     resolver: zodResolver(RecoverSchema),
@@ -63,7 +63,7 @@ export const ResetPasswordForm = () => {
         const json = await response.json()
 
         await login({ email: json.user.email, password: values.password })
-        const redirect = searchParams.get('redirect')
+        const redirect = searchParams?.get('redirect')
         router.push(redirect || '/')
       } catch {
         setError('There was a problem while resetting your password. Please try again later.')

@@ -6,7 +6,7 @@ import { getPayload, type RequiredDataFromCollectionSlug } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import { homeStatic } from '@/endpoints/seed/home-static'
-
+import FlashSaleSection from '@/components/FlashSale/FlashSaleSection'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
@@ -82,8 +82,10 @@ export default async function Page({ params: paramsPromise }: Args) {
           <RenderHero {...hero} />
           <Gutter className="flex flex-col gap-[100px] mt-[100px] md:gap-[60px]">
             <Categories categories={categories} />
-           
+            <FlashSaleSection />
           </Gutter>
+
+        
         </section>
       ) : (
         <>

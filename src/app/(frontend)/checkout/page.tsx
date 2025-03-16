@@ -13,10 +13,6 @@ export default async function CheckoutPage() {
     )}&redirect=${encodeURIComponent('/auth/login?callbackUrl=/checkout')}`,
   })
 
-  // const { user } = useAuth()
-  // if (!user) {
-  //   redirect('/auth/login?callbackUrl=/checkout')
-  // }
   return <CheckoutForm />
 }
 

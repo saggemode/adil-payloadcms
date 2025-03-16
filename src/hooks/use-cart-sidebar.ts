@@ -4,8 +4,9 @@ import useCartStore from './use-cart-store'
 
 const isNotInPaths = (s: string) =>
   !/^\/$|^\/cart$|^\/checkout$|^\/sign-in$|^\/sign-up$|^\/order(\/.*)?$|^\/account(\/.*)?$|^\/admin(\/.*)?$/.test(
-    s
+    s,
   )
+
 function useCartSidebar() {
   const {
     cart: { items },
@@ -13,8 +14,12 @@ function useCartSidebar() {
   const deviceType = useDeviceType()
   const currentPath = usePathname()
 
+  // Handle the case where currentPath is null
   return (
-    items.length > 0 && deviceType === 'desktop' && isNotInPaths(currentPath)
+    items.length > 0 &&
+    deviceType === 'desktop' &&
+    currentPath !== null &&
+    isNotInPaths(currentPath)
   )
 }
 

@@ -80,6 +80,7 @@ export interface Config {
     reviews: Review;
     addresses: Address;
     coupons: Coupon;
+    'flash-sales': FlashSale;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -105,6 +106,7 @@ export interface Config {
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
+    'flash-sales': FlashSalesSelect<false> | FlashSalesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -897,6 +899,9 @@ export interface Product {
   title: string;
   price: number;
   listPrice: number;
+  flashSaleId?: string | null;
+  flashSaleEndDate?: string | null;
+  flashSaleDiscount?: number | null;
   isFeatured?: boolean | null;
   isPublished?: boolean | null;
   countInStock: number;
@@ -965,6 +970,52 @@ export interface Review {
   rating: number;
   title: string;
   comment: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "flash-sales".
+ */
+export interface FlashSale {
+  id: number;
+  name: string;
+  description?: string | null;
+  startDate: string;
+  endDate: string;
+  /**
+   * Percentage discount to apply to products
+   */
+  discountPercent: number;
+  products: (number | Product)[];
+  status: 'draft' | 'scheduled' | 'active' | 'completed' | 'cancelled';
+  featuredImage?: (number | null) | Media;
+  /**
+   * Minimum purchase amount required to qualify for the flash sale (0 for no minimum)
+   */
+  minimumPurchase?: number | null;
+  /**
+   * Maximum number of items each customer can buy (0 for unlimited)
+   */
+  itemLimit?: number | null;
+  /**
+   * Total number of items available for this flash sale
+   */
+  totalQuantity: number;
+  /**
+   * Number of items sold in this flash sale
+   */
+  soldQuantity?: number | null;
+  /**
+   * Feature this flash sale on the homepage
+   */
+  featured?: boolean | null;
+  /**
+   * Higher priority flash sales will be shown first
+   */
+  priority?: number | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1204,6 +1255,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coupons';
         value: number | Coupon;
+      } | null)
+    | ({
+        relationTo: 'flash-sales';
+        value: number | FlashSale;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1672,6 +1727,9 @@ export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   price?: T;
   listPrice?: T;
+  flashSaleId?: T;
+  flashSaleEndDate?: T;
+  flashSaleDiscount?: T;
   isFeatured?: T;
   isPublished?: T;
   countInStock?: T;
@@ -1760,6 +1818,30 @@ export interface CouponsSelect<T extends boolean = true> {
   usageLimit?: T;
   usageCount?: T;
   orders?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "flash-sales_select".
+ */
+export interface FlashSalesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  startDate?: T;
+  endDate?: T;
+  discountPercent?: T;
+  products?: T;
+  status?: T;
+  featuredImage?: T;
+  minimumPurchase?: T;
+  itemLimit?: T;
+  totalQuantity?: T;
+  soldQuantity?: T;
+  featured?: T;
+  priority?: T;
   slug?: T;
   slugLock?: T;
   updatedAt?: T;

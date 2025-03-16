@@ -41,31 +41,31 @@ export default function ProductFilter({
   const [isLoading, setIsLoading] = useState(false)
 
   const [filters, setFilters] = useState({
-    query: searchParams.get('query') || '',
-    category: searchParams.get('category') || 'all',
-    brand: searchParams.get('brand') || 'all',
-    color: searchParams.get('color') || 'all',
-    size: searchParams.get('size') || 'all',
-    tag: searchParams.get('tag') || 'all',
-    price: searchParams.get('price') || '0-1000',
-    rating: searchParams.get('rating') || 'all',
-    sort: searchParams.get('sort') || 'newest-arrivals',
-    page: searchParams.get('page') || '1',
+    query: searchParams?.get('query') || '',
+    category: searchParams?.get('category') || 'all',
+    brand: searchParams?.get('brand') || 'all',
+    color: searchParams?.get('color') || 'all',
+    size: searchParams?.get('size') || 'all',
+    tag: searchParams?.get('tag') || 'all',
+    price: searchParams?.get('price') || '0-1000',
+    rating: searchParams?.get('rating') || 'all',
+    sort: searchParams?.get('sort') || 'newest-arrivals',
+    page: searchParams?.get('page') || '1',
   })
 
   // Update filters when URL changes
   useEffect(() => {
     setFilters({
-      query: searchParams.get('query') || '',
-      category: searchParams.get('category') || 'all',
-      brand: searchParams.get('brand') || 'all',
-      color: searchParams.get('color') || 'all',
-      size: searchParams.get('size') || 'all',
-      tag: searchParams.get('tag') || 'all',
-      price: searchParams.get('price') || '0-1000',
-      rating: searchParams.get('rating') || 'all',
-      sort: searchParams.get('sort') || 'newest-arrivals',
-      page: searchParams.get('page') || '1',
+      query: searchParams?.get('query') || '',
+      category: searchParams?.get('category') || 'all',
+      brand: searchParams?.get('brand') || 'all',
+      color: searchParams?.get('color') || 'all',
+      size: searchParams?.get('size') || 'all',
+      tag: searchParams?.get('tag') || 'all',
+      price: searchParams?.get('price') || '0-1000',
+      rating: searchParams?.get('rating') || 'all',
+      sort: searchParams?.get('sort') || 'newest-arrivals',
+      page: searchParams?.get('page') || '1',
     })
   }, [searchParams])
 

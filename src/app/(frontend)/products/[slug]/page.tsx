@@ -5,7 +5,6 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache, Suspense } from 'react'
-import RichText from '@/components/RichText'
 
 import type { Category, Product } from '@/payload-types'
 

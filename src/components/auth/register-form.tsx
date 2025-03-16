@@ -29,7 +29,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
     const searchParams = useSearchParams()
-    //const allParams = searchParams.toString() ? `?${searchParams.toString()}` : ''
     const { login } = useAuth()
     const router = useRouter()
 
@@ -63,7 +62,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
      try {
        await login(values)
-       const redirect = searchParams.get('redirect')
+       const redirect = searchParams?.get('redirect')
        router.push(redirect || '/')
      } catch {
        setError('There was an issue with login. Please try again.')

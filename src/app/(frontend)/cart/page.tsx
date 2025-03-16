@@ -17,47 +17,55 @@ import { APP_NAME, FREE_SHIPPING_MIN_PRICE } from '@/constants'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React from 'react'
+import React, { useState } from 'react'
 
 export default function CartPage() {
+  const [isLoading, setIsLoading] = useState(false)
   const {
     cart: { items, itemsPrice },
     updateItem,
     removeItem,
   } = useCartStore()
   const router = useRouter()
+
+  const handleProceedToCheckout = () => {
+    setIsLoading(true)
+    router.push('/checkout')
+  }
+
   return (
     <div>
-      <div className='grid grid-cols-1 md:grid-cols-4  md:gap-4'>
+      <div className="grid grid-cols-1 md:grid-cols-4  md:gap-4">
         {items.length === 0 ? (
-          <Card className='col-span-4 rounded-none'>
-            <CardHeader className='text-3xl  '>
-              Your Shopping Cart is empty
-            </CardHeader>
+          <Card className="col-span-4 rounded-none">
+            <CardHeader className="text-3xl  ">Your Shopping Cart is empty</CardHeader>
             <CardContent>
-              Continue shopping on <Link href='/'>{APP_NAME}</Link>
+              Continue shopping on{' '}
+              <Link href="/" prefetch={true}>
+                {APP_NAME}
+              </Link>
             </CardContent>
           </Card>
         ) : (
           <>
-            <div className='col-span-3'>
-              <Card className='rounded-none'>
-                <CardHeader className='text-3xl pb-0'>Shopping Cart</CardHeader>
-                <CardContent className='p-4'>
-                  <div className='flex justify-end border-b mb-4'>Price</div>
+            <div className="col-span-3">
+              <Card className="rounded-none">
+                <CardHeader className="text-3xl pb-0">Shopping Cart</CardHeader>
+                <CardContent className="p-4">
+                  <div className="flex justify-end border-b mb-4">Price</div>
 
                   {items.map((item) => (
                     <div
                       key={item.clientId}
-                      className='flex flex-col md:flex-row justify-between py-4 border-b gap-4'
+                      className="flex flex-col md:flex-row justify-between py-4 border-b gap-4"
                     >
-                      <Link href={`/product/${item.slug}`}>
-                        <div className='relative w-40 h-40'>
+                      <Link href={`/products/${item.slug}`} prefetch={true}>
+                        <div className="relative w-40 h-40">
                           <Image
                             src={item.image}
                             alt={item.name}
                             fill
-                            sizes='20vw'
+                            sizes="20vw"
                             style={{
                               objectFit: 'contain',
                             }}
@@ -65,36 +73,31 @@ export default function CartPage() {
                         </div>
                       </Link>
 
-                      <div className='flex-1 space-y-4'>
+                      <div className="flex-1 space-y-4">
                         <Link
-                          href={`/product/${item.slug}`}
-                          className='text-lg hover:no-underline  '
+                          prefetch={true}
+                          href={`/products/${item.slug}`}
+                          className="text-lg hover:no-underline  "
                         >
                           {item.name}
                         </Link>
                         <div>
-                          <p className='text-sm'>
-                            <span className='font-bold'>Color: </span>{' '}
-                            {item.color}
+                          <p className="text-sm">
+                            <span className="font-bold">Color: </span> {item.color}
                           </p>
-                          <p className='text-sm'>
-                            <span className='font-bold'>Size: </span>{' '}
-                            {item.size}
+                          <p className="text-sm">
+                            <span className="font-bold">Size: </span> {item.size}
                           </p>
                         </div>
-                        <div className='flex gap-2 items-center'>
+                        <div className="flex gap-2 items-center">
                           <Select
                             value={item.quantity.toString()}
-                            onValueChange={(value:any) =>
-                              updateItem(item, Number(value))
-                            }
+                            onValueChange={(value: any) => updateItem(item, Number(value))}
                           >
-                            <SelectTrigger className='w-auto'>
-                              <SelectValue>
-                                Quantity: {item.quantity}
-                              </SelectValue>
+                            <SelectTrigger className="w-auto">
+                              <SelectValue>Quantity: {item.quantity}</SelectValue>
                             </SelectTrigger>
-                            <SelectContent position='popper'>
+                            <SelectContent position="popper">
                               {Array.from({
                                 length: item.countInStock,
                               }).map((_, i) => (
@@ -104,16 +107,13 @@ export default function CartPage() {
                               ))}
                             </SelectContent>
                           </Select>
-                          <Button
-                            variant={'outline'}
-                            onClick={() => removeItem(item)}
-                          >
+                          <Button variant={'outline'} onClick={() => removeItem(item)}>
                             Delete
                           </Button>
                         </div>
                       </div>
                       <div>
-                        <p className='text-right'>
+                        <p className="text-right">
                           {item.quantity > 1 && (
                             <>
                               {item.quantity} x
@@ -122,22 +122,17 @@ export default function CartPage() {
                             </>
                           )}
 
-                          <span className='font-bold text-lg'>
-                            <ProductPrice
-                              price={item.price * item.quantity}
-                              plain
-                            />
+                          <span className="font-bold text-lg">
+                            <ProductPrice price={item.price * item.quantity} plain />
                           </span>
                         </p>
                       </div>
                     </div>
                   ))}
 
-                  <div className='flex justify-end text-lg my-2'>
-                    Subtotal (
-                    {items.reduce((acc, item) => acc + item.quantity, 0)}{' '}
-                    Items):{' '}
-                    <span className='font-bold ml-1'>
+                  <div className="flex justify-end text-lg my-2">
+                    Subtotal ({items.reduce((acc, item) => acc + item.quantity, 0)} Items):{' '}
+                    <span className="font-bold ml-1">
                       <ProductPrice price={itemsPrice} plain />
                     </span>{' '}
                   </div>
@@ -145,41 +140,41 @@ export default function CartPage() {
               </Card>
             </div>
             <div>
-              <Card className='rounded-none'>
-                <CardContent className='py-4 space-y-4'>
+              <Card className="rounded-none">
+                <CardContent className="py-4 space-y-4">
                   {itemsPrice < FREE_SHIPPING_MIN_PRICE ? (
-                    <div className='flex-1'>
+                    <div className="flex-1">
                       Add{' '}
-                      <span className='text-green-700'>
-                        <ProductPrice
-                          price={FREE_SHIPPING_MIN_PRICE - itemsPrice}
-                          plain
-                        />
+                      <span className="text-green-700">
+                        <ProductPrice price={FREE_SHIPPING_MIN_PRICE - itemsPrice} plain />
                       </span>{' '}
-                      of eligible items to your order to qualify for FREE
-                      Shipping
+                      of eligible items to your order to qualify for FREE Shipping
                     </div>
                   ) : (
-                    <div className='flex-1'>
-                      <span className='text-green-700'>
-                        Your order qualifies for FREE Shipping
-                      </span>{' '}
+                    <div className="flex-1">
+                      <span className="text-green-700">Your order qualifies for FREE Shipping</span>{' '}
                       Choose this option at checkout
                     </div>
                   )}
-                  <div className='text-lg'>
-                    Subtotal (
-                    {items.reduce((acc, item) => acc + item.quantity, 0)}{' '}
-                    items):{' '}
-                    <span className='font-bold'>
+                  <div className="text-lg">
+                    Subtotal ({items.reduce((acc, item) => acc + item.quantity, 0)} items):{' '}
+                    <span className="font-bold">
                       <ProductPrice price={itemsPrice} plain />
                     </span>{' '}
                   </div>
                   <Button
-                    onClick={() => router.push('/checkout')}
-                    className='rounded-full w-full'
+                    onClick={handleProceedToCheckout}
+                    className="rounded-full w-full flex items-center justify-center gap-2"
+                    disabled={isLoading}
                   >
-                    Proceed to Checkout
+                    {isLoading ? (
+                      <>
+                        <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+                        Processing...
+                      </>
+                    ) : (
+                      'Proceed to Checkout'
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -187,7 +182,7 @@ export default function CartPage() {
           </>
         )}
       </div>
-      <BrowsingHistoryList className='mt-10' />
+      <BrowsingHistoryList className="mt-10" />
     </div>
   )
 }

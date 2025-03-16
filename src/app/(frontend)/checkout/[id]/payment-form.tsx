@@ -8,6 +8,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { approvePayPalOrder, createPayPalOrder } from '@/actions/orderAction'
+import { formatError } from '@/utilities/generateId'
 
 import CheckoutFooter from '../checkout-footer'
 import { redirect, useRouter } from 'next/navigation'
@@ -19,6 +20,7 @@ import ProductPrice from '@/components/ProductArchive/Price'
 import { formatDateTime2 } from '@/utilities/generateId'
 
 import { Order } from '@/payload-types'
+import { useState } from 'react'
 
 export default function OrderPaymentForm({
   order,
@@ -31,6 +33,8 @@ export default function OrderPaymentForm({
   clientSecret: string | null
 }) {
   const router = useRouter()
+  const [isPaypalLoading, setIsPaypalLoading] = useState(false)
+  const [isCodLoading, setIsCodLoading] = useState(false)
   const {
     shippingAddress,
     items,
@@ -58,20 +62,56 @@ export default function OrderPaymentForm({
     return status
   }
   const handleCreatePayPalOrder = async () => {
-    const res = await createPayPalOrder(order.id.toString())
-    if (!res.success)
-      return toast({
-        description: res.message,
+    setIsPaypalLoading(true)
+    try {
+      const res = await createPayPalOrder(order.id.toString())
+      if (!res.success) {
+        toast({
+          description: res.message,
+          variant: 'destructive',
+        })
+        return null
+      }
+      return res.data
+    } catch (error) {
+      toast({
+        description: formatError(error),
         variant: 'destructive',
       })
-    return res.data
+      return null
+    } finally {
+      setIsPaypalLoading(false)
+    }
   }
   const handleApprovePayPalOrder = async (data: { orderID: string }) => {
-    const res = await approvePayPalOrder(order.id.toString(), data)
-    toast({
-      description: res.message,
-      variant: res.success ? 'default' : 'destructive',
-    })
+    setIsPaypalLoading(true)
+    try {
+      const res = await approvePayPalOrder(order.id.toString(), data)
+      toast({
+        description: res.message,
+        variant: res.success ? 'default' : 'destructive',
+      })
+    } catch (error) {
+      toast({
+        description: formatError(error),
+        variant: 'destructive',
+      })
+    } finally {
+      setIsPaypalLoading(false)
+    }
+  }
+
+  const handleCodRedirect = () => {
+    setIsCodLoading(true)
+    try {
+      router.push(`/account/orders/${order.id.toString()}`)
+    } catch (error) {
+      toast({
+        description: formatError(error),
+        variant: 'destructive',
+      })
+      setIsCodLoading(false)
+    }
   }
 
   const CheckoutSummary = () => (
@@ -114,11 +154,21 @@ export default function OrderPaymentForm({
             {!isPaid && paymentMethod === 'PayPal' && (
               <div>
                 <PayPalScriptProvider options={{ clientId: paypalClientId }}>
-                  <PrintLoadingState />
-                  <PayPalButtons
-                    createOrder={handleCreatePayPalOrder}
-                    onApprove={handleApprovePayPalOrder}
-                  />
+                  {isPaypalLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <span className="animate-spin border-2 border-primary border-t-transparent rounded-full w-6 h-6 mr-2"></span>
+                      Processing payment...
+                    </div>
+                  ) : (
+                    <>
+                      <PrintLoadingState />
+                      <PayPalButtons
+                        createOrder={handleCreatePayPalOrder}
+                        onApprove={handleApprovePayPalOrder}
+                        disabled={isPaypalLoading}
+                      />
+                    </>
+                  )}
                 </PayPalScriptProvider>
               </div>
             )}
@@ -138,10 +188,18 @@ export default function OrderPaymentForm({
 
             {!isPaid && paymentMethod === 'Cash On Delivery' && (
               <Button
-                className="w-full rounded-full"
-                onClick={() => router.push(`/account/orders/${order.id.toString()}`)}
+                className="w-full rounded-full flex items-center justify-center gap-2"
+                onClick={handleCodRedirect}
+                disabled={isCodLoading}
               >
-                View Order
+                {isCodLoading ? (
+                  <>
+                    <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+                    Processing...
+                  </>
+                ) : (
+                  'View Order'
+                )}
               </Button>
             )}
           </div>
@@ -150,9 +208,7 @@ export default function OrderPaymentForm({
     </Card>
   )
 
-  const stripePromise = loadStripe(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
-  )
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
 
   return (
     <main className="max-w-6xl mx-auto">

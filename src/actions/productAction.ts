@@ -360,3 +360,117 @@ export async function getAllTagExtra() {
   const tags = await payload.find({ collection: 'tags' }) // Fetch all tags
   return tags.docs.map((doc) => doc.title) // Adjust field name as needed
 }
+
+// Function to update product after successful purchase
+export async function updateProductAfterPurchase(productId: string, quantity: number) {
+  try {
+    // 1. Connect to PayloadCMS
+    const payload = await getPayload({ config: configPromise })
+
+    // 2. Get current product data
+    const product = await payload.findByID({
+      collection: 'products',
+      id: productId,
+    })
+
+    if (!product) {
+      throw new Error('Product not found')
+    }
+
+    // 3. Update the product
+    await payload.update({
+      collection: 'products',
+      id: productId,
+      data: {
+        // Reduce stock
+        countInStock: product.countInStock - quantity,
+        // Increase sales
+        numSales: (product.numSales || 0) + quantity,
+      },
+    })
+
+    return true
+  } catch (error) {
+    console.error('Error updating product:', error)
+    return false
+  }
+}
+
+interface AdvancedFilterOptions extends FilterOptions {
+  minPrice?: number
+  maxPrice?: number
+  inStock?: boolean
+  sortBy?: 'price_asc' | 'price_desc' | 'newest' | 'popular' | 'rating'
+  brands?: string[]
+  colors?: string[]
+  sizes?: string[]
+  tags?: string[]
+  searchTerm?: string
+}
+
+export const getAdvancedFilteredProducts = cache(
+  async ({
+    query,
+    category,
+    brand,
+    color,
+    size,
+    minPrice,
+    maxPrice,
+    inStock,
+    sortBy,
+    tags,
+    limit = 12,
+    page = 1,
+  }: AdvancedFilterOptions) => {
+    const payload = await getPayload({ config: configPromise })
+
+    const filters: any = {
+      ...(query && { title: { contains: query } }),
+      ...(category && { category: { equals: category } }),
+      ...(brand && { brand: { in: brand } }),
+      ...(color && { color: { in: color } }),
+      ...(size && { size: { in: size } }),
+      ...(tags && { tags: { in: tags } }),
+      ...(inStock && { countInStock: { greater_than: 0 } }),
+      ...((minPrice || maxPrice) && {
+        price: {
+          ...(minPrice && { greater_than_equal: minPrice }),
+          ...(maxPrice && { less_than_equal: maxPrice }),
+        },
+      }),
+    }
+
+    const sortOrder = {
+      price_asc: 'price',
+      price_desc: '-price',
+      newest: '-createdAt',
+      popular: '-numSales',
+      rating: '-avgRating',
+    }[sortBy || 'newest']
+
+    try {
+      const result = await payload.find({
+        collection: 'products',
+        where: filters,
+        sort: sortOrder,
+        limit,
+        page,
+      })
+
+      return {
+        success: true,
+        data: {
+          products: result.docs,
+          totalPages: result.totalPages,
+          currentPage: result.page,
+          hasNextPage: result.hasNextPage,
+          hasPrevPage: result.hasPrevPage,
+        },
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      return { success: false, error: 'Failed to fetch products' }
+    }
+  },
+)

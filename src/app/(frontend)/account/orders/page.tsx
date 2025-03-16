@@ -10,11 +10,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { Pagination } from '@/components/Pagination'
 import ProductPrice from '@/components/ProductArchive/Price'
 import { getMyOrders } from '@/actions/orderAction'
 import { formatDateTime2, formatId } from '@/utilities/generateId'
 import { Order } from '@/payload-types'
+import Paginations from '@/components/paginations'
 
 const PAGE_TITLE = 'Your Orders'
 export const metadata: Metadata = {
@@ -82,7 +82,7 @@ export default async function OrdersPage(props: { searchParams: Promise<{ page: 
             ))}
           </TableBody>
         </Table>
-        {orders.totalPages > 1 && <Pagination page={page} totalPages={orders.totalPages} />}
+        {orders.totalPages > 1 && <Paginations page={page} totalPages={orders.totalPages} />}
       </div>
       {/* <BrowsingHistoryList className="mt-16" /> */}
     </div>

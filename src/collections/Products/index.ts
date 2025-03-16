@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import { CollectionConfig } from 'payload'
 
 import {
   BlocksFeature,
@@ -84,7 +84,33 @@ export const Products: CollectionConfig = {
       label: 'Listing Price',
       validate: (value: any) => value >= 0 || 'listing Price must be a positive number',
     },
-
+    {
+      name: 'flashSaleId',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'flashSaleEndDate',
+      type: 'date',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'flashSaleDiscount',
+      type: 'number',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
     {
       name: 'isFeatured',
       type: 'checkbox',
