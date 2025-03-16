@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Slider } from '@/components/ui/slider'
 import {
@@ -39,6 +39,7 @@ export default function ProductFilter({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('query') || '')
 
   const [filters, setFilters] = useState({
     query: searchParams?.get('query') || '',
@@ -47,27 +48,57 @@ export default function ProductFilter({
     color: searchParams?.get('color') || 'all',
     size: searchParams?.get('size') || 'all',
     tag: searchParams?.get('tag') || 'all',
-    price: searchParams?.get('price') || '0-1000',
+    price: searchParams?.get('price') || '0-1000000',
     rating: searchParams?.get('rating') || 'all',
     sort: searchParams?.get('sort') || 'newest-arrivals',
     page: searchParams?.get('page') || '1',
   })
 
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      handleFilterChange('query', query)
+      applyFilters()
+    }, 500),
+    [],
+  )
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value
+    setSearchQuery(query)
+    debouncedSearch(query)
+  }
+
   // Update filters when URL changes
   useEffect(() => {
+    const query = searchParams?.get('query') || ''
+    setSearchQuery(query)
     setFilters({
-      query: searchParams?.get('query') || '',
+      query,
       category: searchParams?.get('category') || 'all',
       brand: searchParams?.get('brand') || 'all',
       color: searchParams?.get('color') || 'all',
       size: searchParams?.get('size') || 'all',
       tag: searchParams?.get('tag') || 'all',
-      price: searchParams?.get('price') || '0-1000',
+      price: searchParams?.get('price') || '0-1000000',
       rating: searchParams?.get('rating') || 'all',
       sort: searchParams?.get('sort') || 'newest-arrivals',
       page: searchParams?.get('page') || '1',
     })
   }, [searchParams])
+
+  // Debounce function
+  function debounce<T extends (...args: any[]) => void>(
+    func: T,
+    wait: number,
+  ): (...args: Parameters<T>) => void {
+    let timeout: NodeJS.Timeout | null = null
+
+    return (...args: Parameters<T>) => {
+      if (timeout) clearTimeout(timeout)
+      timeout = setTimeout(() => func(...args), wait)
+    }
+  }
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({
@@ -78,31 +109,53 @@ export default function ProductFilter({
   }
 
   const clearFilters = () => {
-    setFilters({
+    setSearchQuery('')
+    const defaultFilters = {
       query: '',
       category: 'all',
       brand: 'all',
       color: 'all',
       size: 'all',
       tag: 'all',
-      price: '0-1000',
+      price: '0-1000000',
       rating: 'all',
       sort: 'newest-arrivals',
       page: '1',
-    })
+    }
+    setFilters(defaultFilters)
     router.push('/products')
   }
 
   const applyFilters = async () => {
     setIsLoading(true)
-    const params = new URLSearchParams()
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== 'all') {
-        params.set(key, value)
-      }
-    })
-    await router.push(`/products?${params.toString()}`)
-    setIsLoading(false)
+    try {
+      const params = new URLSearchParams()
+
+      // Only add non-default values to URL
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== 'all' && value !== '') {
+          // Handle price range specially
+          if (key === 'price' && value === '0-1000000') {
+            return // Skip default price range
+          }
+          // Ensure query is properly encoded
+          if (key === 'query') {
+            params.set(key, value.trim().toLowerCase())
+          } else {
+            params.set(key, value)
+          }
+        }
+      })
+
+      // Ensure proper encoding of parameters
+      const queryString = params.toString()
+      const url = queryString ? `/products?${queryString}` : '/products'
+      await router.push(url)
+    } catch (error) {
+      console.error('Error applying filters:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Get active filters for badges
@@ -141,8 +194,8 @@ export default function ProductFilter({
         <label className="text-sm font-medium">Search Products</label>
         <Input
           type="text"
-          value={filters.query}
-          onChange={(e) => handleFilterChange('query', e.target.value)}
+          value={searchQuery}
+          onChange={handleSearchChange}
           placeholder="Search products..."
           className="w-full"
         />
@@ -234,14 +287,20 @@ export default function ProductFilter({
         <label className="text-sm font-medium">Price Range</label>
         <Slider
           defaultValue={[0, 1000000]}
-          value={[Number(filters.price.split('-')[0]), Number(filters.price.split('-')[1])]}
+          value={[
+            Number(filters.price.split('-')[0] || '0'),
+            Number(filters.price.split('-')[1] || '1000000'),
+          ]}
           max={1000000}
           step={10}
-          onValueChange={(value) => handleFilterChange('price', `${value[0]}-${value[1]}`)}
+          onValueChange={(value: [number, number]) => {
+            const formattedPrice = `${Math.floor(value[0])}-${Math.floor(value[1])}`
+            handleFilterChange('price', formattedPrice)
+          }}
         />
         <div className="flex justify-between text-sm text-gray-500">
-          <span>₦{filters.price.split('-')[0]}</span>
-          <span>₦{filters.price.split('-')[1]}</span>
+          <span>₦{Number(filters.price.split('-')[0] || '0').toLocaleString()}</span>
+          <span>₦{Number(filters.price.split('-')[1] || '1000000').toLocaleString()}</span>
         </div>
       </div>
 
