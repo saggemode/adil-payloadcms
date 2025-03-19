@@ -10,6 +10,7 @@ interface ProductPriceProps {
   forListing?: boolean
   plain?: boolean
   currencyCode?: 'NGN' | 'EUR' | 'GBP'
+  flashSaleDiscount?: number
 }
 
 const CURRENCY_CODES = ['NGN', 'EUR', 'GBP'] as const
@@ -37,6 +38,7 @@ const ProductPrice: React.FC<ProductPriceProps> = ({
   forListing = true,
   plain = false,
   currencyCode = DEFAULT_CURRENCY,
+  flashSaleDiscount,
 }) => {
   const validatedCurrency = CURRENCY_CODES.includes(
     currencyCode.toUpperCase() as (typeof CURRENCY_CODES)[number],
@@ -57,7 +59,7 @@ const ProductPrice: React.FC<ProductPriceProps> = ({
   if (isDeal) {
     return (
       <div className="space-y-2">
-        <DealBadge discount={discountPercent} />
+        <DealBadge discount={discountPercent} flashSaleDiscount={flashSaleDiscount} />
         <PriceComparison
           currentPrice={formattedPrice}
           originalPrice={formattedListPrice}
@@ -80,11 +82,19 @@ const ProductPrice: React.FC<ProductPriceProps> = ({
   )
 }
 
-const DealBadge: React.FC<{ discount: number }> = ({ discount }) => (
+const DealBadge: React.FC<{ discount: number; flashSaleDiscount?: number }> = ({
+  discount,
+  flashSaleDiscount,
+}) => (
   <div className="flex justify-center items-center gap-2">
     <span className="bg-red-700 rounded-sm p-1 text-white text-sm font-semibold">
       {discount}% Off
     </span>
+    {flashSaleDiscount && (
+      <span className="bg-orange-500 rounded-sm p-1 text-white text-sm font-semibold">
+        Flash Sale {flashSaleDiscount}%
+      </span>
+    )}
     <span className="text-red-700 text-xs font-bold">Limited time deal</span>
   </div>
 )

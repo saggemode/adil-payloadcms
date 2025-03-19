@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import useClickableCard from '@/utilities/useClickableCard'
-import React from 'react'
+import React, { useState } from 'react'
 import AddToCart from '@/components/ProductArchive/add-to-cart'
 import { generateId, round2 } from '@/utilities/generateId'
 import { Product, Category, Tag } from '@/payload-types'
@@ -10,6 +10,16 @@ import ProductImage from './ProductImage'
 import Rating from '../rating'
 import ProductPrice from '../Price'
 import Link from 'next/link'
+import { QRCodeSVG } from 'qrcode.react'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { QrCode } from 'lucide-react'
 
 export type CardProduct = Pick<
   Product,
@@ -27,6 +37,7 @@ export type CardProduct = Pick<
   | 'tags'
   | 'avgRating'
   | 'numReviews'
+  | 'flashSaleDiscount'
 >
 
 export const Card: React.FC<{
@@ -39,7 +50,7 @@ export const Card: React.FC<{
   hideAddToCart?: boolean
 }> = (props) => {
   const { link } = useClickableCard({})
-  const { doc, relationTo, hideAddToCart } = props
+  const { doc, relationTo = 'products', hideAddToCart } = props
 
   const {
     id,
@@ -53,9 +64,11 @@ export const Card: React.FC<{
     tags,
     avgRating,
     numReviews,
+    flashSaleDiscount,
   } = doc || {}
 
   const href = `/${relationTo}/${slug}`
+  const fullUrl = typeof window !== 'undefined' ? `${window.location.origin}${href}` : href
 
   const getCategoryTitle = (categories: number | Category | null | undefined) => {
     if (Array.isArray(categories)) {
@@ -137,14 +150,29 @@ export const Card: React.FC<{
             <span>({numReviews ?? 0})</span>
           </span>
         </div>
-        <ProductPrice
-          price={price ?? 0}
-          listPrice={listPrice}
-          isDeal={getTagTitle(tags)}
-          forListing={false}
-        />
+        <ProductPrice price={price ?? 0} listPrice={listPrice} forListing={false} />
       </Link>
-      {!hideAddToCart && <AddButton />}
+      <div className="flex items-center gap-2 w-full mt-2">
+        {!hideAddToCart && <AddButton />}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="icon" className="ml-auto">
+              <QrCode className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Scan to view product</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-4 p-4">
+              <QRCodeSVG value={fullUrl} size={200} />
+              <p className="text-sm text-gray-500 text-center">
+                Scan this QR code to view {title} on your mobile device
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   )
 }

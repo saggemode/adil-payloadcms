@@ -6,7 +6,6 @@ import { getPayload, type RequiredDataFromCollectionSlug } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import { homeStatic } from '@/endpoints/seed/home-static'
-import FlashSaleSection from '@/components/FlashSale/FlashSaleSection'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
@@ -15,6 +14,7 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { Gutter } from '@payloadcms/ui'
 import Categories from '@/components/Categories'
 import { getAllCategories } from '@/actions/productAction'
+import { FlashSaleSection } from '@/components/FlashSale'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -80,12 +80,11 @@ export default async function Page({ params: paramsPromise }: Args) {
 
           {draft && <LivePreviewListener />}
           <RenderHero {...hero} />
+         
           <Gutter className="flex flex-col gap-[100px] mt-[100px] md:gap-[60px]">
             <Categories categories={categories} />
             <FlashSaleSection />
           </Gutter>
-
-        
         </section>
       ) : (
         <>

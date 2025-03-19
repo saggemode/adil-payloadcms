@@ -1,88 +1,81 @@
-import type { Metadata } from 'next/types'
+import { Metadata } from 'next'
 
-import { CollectionArchive } from '@/components/CollectionArchive'
-import configPromise from '@payload-config'
+import ProductSearch from '@/components/ProductSearch'
+import ProductGrid from '@/components/ProductArchive/ProductGrid'
+import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
-import React from 'react'
-import { Search } from '@/search/Component'
-import PageClient from './page.client'
-import { CardPostData } from '@/components/Card'
+import configPromise from '@payload-config'
+import { Product } from '@/payload-types'
 
-type Args = {
+export const metadata: Metadata = {
+  title: 'Search Products',
+  description: 'Search for products in our store',
+}
+
+interface SearchPageProps {
   searchParams: Promise<{
-    q: string
+    q?: string
+    barcode?: string
   }>
 }
-export default async function Page({ searchParams: searchParamsPromise }: Args) {
-  const { q: query } = await searchParamsPromise
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const params = await searchParams
+  const { q, barcode } = params
   const payload = await getPayload({ config: configPromise })
 
-  const posts = await payload.find({
-    collection: 'search',
-    depth: 1,
-    limit: 12,
-    select: {
-      title: true,
-      slug: true,
-      categories: true,
-      meta: true,
-    },
-    // pagination: false reduces overhead if you don't need totalDocs
-    pagination: false,
-    ...(query
-      ? {
-          where: {
-            or: [
-              {
-                title: {
-                  like: query,
-                },
-              },
-              {
-                'meta.description': {
-                  like: query,
-                },
-              },
-              {
-                'meta.title': {
-                  like: query,
-                },
-              },
-              {
-                slug: {
-                  like: query,
-                },
-              },
-            ],
-          },
-        }
-      : {}),
-  })
+  let products: Product[] = []
+
+  if (barcode) {
+    // Search by barcode
+    const result = await payload.find({
+      collection: 'products',
+      where: {
+        barcode: {
+          equals: barcode,
+        },
+      },
+    })
+    products = result.docs as Product[]
+  } else if (q) {
+    // Search by text
+    const result = await payload.find({
+      collection: 'products',
+      where: {
+        title: {
+          like: q,
+        },
+      },
+    })
+    products = result.docs as Product[]
+  }
 
   return (
-    <div className="pt-24 pb-24">
-      <PageClient />
-      <div className="container mb-16">
-        <div className="prose dark:prose-invert max-w-none text-center">
-          <h1 className="mb-8 lg:mb-16">Search</h1>
-
-          <div className="max-w-[50rem] mx-auto">
-            <Search />
-          </div>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <ProductSearch />
       </div>
 
-      {posts.totalDocs > 0 ? (
-        <CollectionArchive posts={posts.docs as CardPostData[]} />
+      {products.length > 0 ? (
+        <ProductGrid products={products} />
       ) : (
-        <div className="container">No results found.</div>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-semibold mb-4">
+            {barcode
+              ? 'No products found with this barcode'
+              : q
+                ? 'No products found matching your search'
+                : 'Search for products'}
+          </h2>
+          <p className="text-gray-600">
+            {barcode
+              ? 'Try scanning a different barcode or use text search'
+              : q
+                ? 'Try different keywords or use barcode scanning'
+                : 'Use the search bar above to find products'}
+          </p>
+        </div>
       )}
     </div>
   )
-}
-
-export function generateMetadata(): Metadata {
-  return {
-    title: `auxdoriz  building material and construction`,
-  }
 }

@@ -98,11 +98,11 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
                   <div className="flex gap-3">
                     <ProductPrice
                       price={product.price}
-                      listPrice={product.listPrice}
-                      isDeal={
-                        (Array.isArray(product.tags) && product.tags.includes('todays-deal')) ||
-                        (typeof product.tags === 'string' && product.tags === 'todays-deal')
-                      }
+                      // listPrice={product.listPrice}
+                      // isDeal={
+                      //   (Array.isArray(product.tags) && product.tags.includes('todays-deal')) ||
+                      //   (typeof product.tags === 'string' && product.tags === 'todays-deal')
+                      // }
                       forListing={false}
                     />
                   </div>

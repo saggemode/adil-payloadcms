@@ -24,23 +24,19 @@ export const getActiveFlashSales = cache(async (): Promise<FlashSalesResponse> =
   const currentDate = new Date()
 
   try {
+    console.log('Fetching active flash sales...')
     const result = await payload.find({
       collection: 'flash-sales',
       where: {
         and: [
           {
             status: {
-              equals: 'active',
-            },
-          },
-          {
-            startDate: {
-              less_than_equal: currentDate,
+              in: ['active', 'scheduled'],
             },
           },
           {
             endDate: {
-              greater_than_equal: currentDate,
+              greater_than_equal: currentDate.toISOString(),
             },
           },
         ],
@@ -49,6 +45,7 @@ export const getActiveFlashSales = cache(async (): Promise<FlashSalesResponse> =
       depth: 2,
     })
 
+    console.log('Found flash sales:', result.docs.length)
     return {
       success: true,
       data: result.docs as FlashSale[],
@@ -205,3 +202,37 @@ export const updateFlashSaleSoldQuantity = async (
     return false
   }
 }
+
+export const getAllFlashSales = cache(async (): Promise<FlashSalesResponse> => {
+  const payload = await getPayload({ config: configPromise })
+
+  try {
+    console.log('Fetching all flash sales...')
+    const result = await payload.find({
+      collection: 'flash-sales',
+      depth: 2,
+    })
+
+    console.log(
+      'All flash sales:',
+      result.docs.map((sale) => ({
+        id: sale.id,
+        name: sale.name,
+        status: sale.status,
+        startDate: sale.startDate,
+        endDate: sale.endDate,
+      })),
+    )
+
+    return {
+      success: true,
+      data: result.docs as FlashSale[],
+    }
+  } catch (error) {
+    console.error('Error fetching all flash sales:', error)
+    return {
+      success: false,
+      error: 'Failed to fetch flash sales',
+    }
+  }
+})

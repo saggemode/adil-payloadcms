@@ -897,6 +897,10 @@ export interface Coupon {
 export interface Product {
   id: number;
   title: string;
+  /**
+   * Product barcode (ISBN, UPC, EAN, etc.)
+   */
+  barcode?: string | null;
   price: number;
   listPrice: number;
   flashSaleId?: string | null;
@@ -981,41 +985,27 @@ export interface FlashSale {
   id: number;
   name: string;
   description?: string | null;
+  status: 'draft' | 'scheduled' | 'active' | 'ended';
   startDate: string;
   endDate: string;
-  /**
-   * Percentage discount to apply to products
-   */
-  discountPercent: number;
+  discountType: 'percentage' | 'fixed';
+  discountAmount: number;
   products: (number | Product)[];
-  status: 'draft' | 'scheduled' | 'active' | 'completed' | 'cancelled';
-  featuredImage?: (number | null) | Media;
-  /**
-   * Minimum purchase amount required to qualify for the flash sale (0 for no minimum)
-   */
-  minimumPurchase?: number | null;
-  /**
-   * Maximum number of items each customer can buy (0 for unlimited)
-   */
-  itemLimit?: number | null;
-  /**
-   * Total number of items available for this flash sale
-   */
+  rules?:
+    | {
+        type: 'minPurchase' | 'maxDiscount' | 'maxQuantity';
+        value: number;
+        id?: string | null;
+      }[]
+    | null;
+  stats?: {
+    totalOrders?: number | null;
+    totalRevenue?: number | null;
+    totalDiscount?: number | null;
+    averageOrderValue?: number | null;
+  };
   totalQuantity: number;
-  /**
-   * Number of items sold in this flash sale
-   */
   soldQuantity?: number | null;
-  /**
-   * Feature this flash sale on the homepage
-   */
-  featured?: boolean | null;
-  /**
-   * Higher priority flash sales will be shown first
-   */
-  priority?: number | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1725,6 +1715,7 @@ export interface OrdersSelect<T extends boolean = true> {
  */
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
+  barcode?: T;
   price?: T;
   listPrice?: T;
   flashSaleId?: T;
@@ -1830,20 +1821,29 @@ export interface CouponsSelect<T extends boolean = true> {
 export interface FlashSalesSelect<T extends boolean = true> {
   name?: T;
   description?: T;
+  status?: T;
   startDate?: T;
   endDate?: T;
-  discountPercent?: T;
+  discountType?: T;
+  discountAmount?: T;
   products?: T;
-  status?: T;
-  featuredImage?: T;
-  minimumPurchase?: T;
-  itemLimit?: T;
+  rules?:
+    | T
+    | {
+        type?: T;
+        value?: T;
+        id?: T;
+      };
+  stats?:
+    | T
+    | {
+        totalOrders?: T;
+        totalRevenue?: T;
+        totalDiscount?: T;
+        averageOrderValue?: T;
+      };
   totalQuantity?: T;
   soldQuantity?: T;
-  featured?: T;
-  priority?: T;
-  slug?: T;
-  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }

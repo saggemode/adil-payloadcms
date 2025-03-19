@@ -1,8 +1,7 @@
-"use client";
+'use client'
 
-
-import Image from "next/image";
-import React, { useState } from "react";
+import Image from 'next/image'
+import React, { useState } from 'react'
 
 const PhotoSection = ({ images }: { images: string[] }) => {
   const [selectedImage, setSelectedImage] = useState(0)
@@ -43,7 +42,7 @@ const PhotoSection = ({ images }: { images: string[] }) => {
           src={images[selectedImage] ?? ''}
           width={444}
           height={530}
-          className="rounded-md w-full h-full object-cover hover:scale-110 transition-all duration-500"
+          className="rounded-md w-full h-full object-contain hover:scale-110 transition-all duration-500"
           alt={'product image'}
           priority
           unoptimized
@@ -53,4 +52,4 @@ const PhotoSection = ({ images }: { images: string[] }) => {
   )
 }
 
-export default PhotoSection;
+export default PhotoSection

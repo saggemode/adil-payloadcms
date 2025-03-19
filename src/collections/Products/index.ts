@@ -71,6 +71,15 @@ export const Products: CollectionConfig = {
       required: true,
     },
     {
+      name: 'barcode',
+      type: 'text',
+      required: false,
+      unique: true,
+      admin: {
+        description: 'Product barcode (ISBN, UPC, EAN, etc.)',
+      },
+    },
+    {
       name: 'price',
       type: 'number',
       required: true,

@@ -9,13 +9,13 @@ interface ServerProductCardProps {
 export async function ServerProductCard({ product }: ServerProductCardProps) {
   const flashSale = await getFlashSaleForProduct(product.id?.toString() ?? '')
   const isFlashSale = Boolean(flashSale.success && flashSale.data)
-  const discountPercent = flashSale.success ? flashSale.data?.discountPercent || 0 : 0
+  const discountAmount = flashSale.success ? flashSale.data?.discountAmount || 0 : 0
 
   return (
     <ClientProductCard
       product={product}
       isFlashSale={isFlashSale}
-      discountPercent={discountPercent}
+      discountPercent={discountAmount}
     />
   )
 }

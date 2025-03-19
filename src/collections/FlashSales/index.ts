@@ -1,32 +1,53 @@
-import { anyone } from '@/access/anyone'
-import { admins } from '@/access/admins'
-import { slugField } from '@/fields/slug'
 import { CollectionConfig } from 'payload'
-
-import { validateDatesAndStatus, updateProductAvailability } from './hooks'
+import { admins } from '@/access/admins'
 
 export const FlashSales: CollectionConfig = {
   slug: 'flash-sales',
-  admin: {
-    useAsTitle: 'name',
-    defaultColumns: ['name', 'startDate', 'endDate', 'discountPercent', 'status'],
-    group: 'Shop',
-  },
   access: {
+    read: () => true,
     create: admins,
-    read: anyone,
     update: admins,
     delete: admins,
+  },
+  admin: {
+    useAsTitle: 'name',
+    defaultColumns: ['name', 'status', 'startDate', 'endDate', 'discountType', 'discountAmount'],
   },
   fields: [
     {
       name: 'name',
       type: 'text',
       required: true,
+      label: 'Flash Sale Name',
     },
     {
       name: 'description',
       type: 'textarea',
+      label: 'Description',
+    },
+    {
+      name: 'status',
+      type: 'select',
+      required: true,
+      defaultValue: 'draft',
+      options: [
+        {
+          label: 'Draft',
+          value: 'draft',
+        },
+        {
+          label: 'Scheduled',
+          value: 'scheduled',
+        },
+        {
+          label: 'Active',
+          value: 'active',
+        },
+        {
+          label: 'Ended',
+          value: 'ended',
+        },
+      ],
     },
     {
       name: 'startDate',
@@ -47,15 +68,47 @@ export const FlashSales: CollectionConfig = {
           pickerAppearance: 'dayAndTime',
         },
       },
+      validate: (
+        value: Date | null | undefined,
+        { data }: { data: { startDate?: Date | null | undefined } },
+      ) => {
+        if (value && data.startDate && value <= data.startDate) {
+          return 'End date must be after start date'
+        }
+        return true
+      },
     },
     {
-      name: 'discountPercent',
+      name: 'discountType',
+      type: 'select',
+      required: true,
+      options: [
+        {
+          label: 'Percentage',
+          value: 'percentage',
+        },
+        {
+          label: 'Fixed Amount',
+          value: 'fixed',
+        },
+      ],
+    },
+    {
+      name: 'discountAmount',
       type: 'number',
       required: true,
-      min: 1,
-      max: 99,
-      admin: {
-        description: 'Percentage discount to apply to products',
+      validate: (
+        value: number | null | undefined,
+        { data }: { data: { discountType?: 'percentage' | 'fixed' } },
+      ) => {
+        if (!value) return true
+        if (data.discountType === 'percentage' && (value <= 0 || value > 100)) {
+          return 'Percentage discount must be between 0 and 100'
+        }
+        if (data.discountType === 'fixed' && value <= 0) {
+          return 'Fixed discount must be greater than 0'
+        }
+        return true
       },
     },
     {
@@ -64,105 +117,161 @@ export const FlashSales: CollectionConfig = {
       relationTo: 'products',
       hasMany: true,
       required: true,
-      filterOptions: ({ data }) => {
-        return {
-          countInStock: {
-            greater_than: 0,
-          },
-        }
-      },
     },
     {
-      name: 'status',
-      type: 'select',
-      defaultValue: 'draft',
-      required: true,
-      options: [
+      name: 'rules',
+      type: 'array',
+      label: 'Sale Rules',
+      fields: [
         {
-          label: 'Draft',
-          value: 'draft',
+          name: 'type',
+          type: 'select',
+          required: true,
+          options: [
+            {
+              label: 'Minimum Purchase Amount',
+              value: 'minPurchase',
+            },
+            {
+              label: 'Maximum Discount Per Order',
+              value: 'maxDiscount',
+            },
+            {
+              label: 'Limited Quantity Per Customer',
+              value: 'maxQuantity',
+            },
+          ],
         },
         {
-          label: 'Scheduled',
-          value: 'scheduled',
-        },
-        {
-          label: 'Active',
-          value: 'active',
-        },
-        {
-          label: 'Completed',
-          value: 'completed',
-        },
-        {
-          label: 'Cancelled',
-          value: 'cancelled',
+          name: 'value',
+          type: 'number',
+          required: true,
         },
       ],
     },
     {
-      name: 'featuredImage',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
-      name: 'minimumPurchase',
-      type: 'number',
-      min: 0,
+      name: 'stats',
+      type: 'group',
       admin: {
-        description:
-          'Minimum purchase amount required to qualify for the flash sale (0 for no minimum)',
+        readOnly: true,
       },
-    },
-    {
-      name: 'itemLimit',
-      type: 'number',
-      min: 0,
-      defaultValue: 0,
-      admin: {
-        description: 'Maximum number of items each customer can buy (0 for unlimited)',
-      },
+      fields: [
+        {
+          name: 'totalOrders',
+          type: 'number',
+          defaultValue: 0,
+        },
+        {
+          name: 'totalRevenue',
+          type: 'number',
+          defaultValue: 0,
+        },
+        {
+          name: 'totalDiscount',
+          type: 'number',
+          defaultValue: 0,
+        },
+        {
+          name: 'averageOrderValue',
+          type: 'number',
+          defaultValue: 0,
+        },
+      ],
     },
     {
       name: 'totalQuantity',
       type: 'number',
       required: true,
-      min: 1,
-      admin: {
-        description: 'Total number of items available for this flash sale',
-      },
+      min: 0,
     },
     {
       name: 'soldQuantity',
       type: 'number',
+      required: false,
       defaultValue: 0,
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-        description: 'Number of items sold in this flash sale',
-      },
+      min: 0,
     },
-    {
-      name: 'featured',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        position: 'sidebar',
-        description: 'Feature this flash sale on the homepage',
-      },
-    },
-    {
-      name: 'priority',
-      type: 'number',
-      defaultValue: 0,
-      admin: {
-        description: 'Higher priority flash sales will be shown first',
-      },
-    },
-    ...slugField(),
   ],
   hooks: {
-    beforeChange: [validateDatesAndStatus],
-    afterChange: [updateProductAvailability],
+    beforeChange: [
+      ({ data, req }) => {
+        // Update status based on dates
+        const now = new Date()
+        const startDate = new Date(data.startDate)
+        const endDate = new Date(data.endDate)
+
+        if (now < startDate) {
+          data.status = 'scheduled'
+        } else if (now >= startDate && now <= endDate) {
+          data.status = 'active'
+        } else if (now > endDate) {
+          data.status = 'ended'
+        }
+
+        return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, req }) => {
+        // Update product prices when flash sale becomes active
+        if (doc.status === 'active') {
+          const products = await req.payload.find({
+            collection: 'products',
+            where: {
+              id: {
+                in: doc.products,
+              },
+            },
+          })
+
+          for (const product of products.docs) {
+            const originalPrice = product.price
+            let discountedPrice = originalPrice
+
+            if (doc.discountType === 'percentage') {
+              discountedPrice = originalPrice * (1 - doc.discountAmount / 100)
+            } else {
+              discountedPrice = originalPrice - doc.discountAmount
+            }
+
+            await req.payload.update({
+              collection: 'products',
+              id: product.id,
+              data: {
+                flashSaleId: doc.id,
+                flashSaleEndDate: doc.endDate,
+                flashSaleDiscount: doc.discountAmount,
+                price: discountedPrice,
+              },
+            })
+          }
+        }
+
+        // Reset product prices when flash sale ends
+        if (doc.status === 'ended') {
+          const products = await req.payload.find({
+            collection: 'products',
+            where: {
+              flashSaleId: {
+                equals: doc.id,
+              },
+            },
+          })
+
+          for (const product of products.docs) {
+            await req.payload.update({
+              collection: 'products',
+              id: product.id,
+              data: {
+                flashSaleId: null,
+                flashSaleEndDate: null,
+                flashSaleDiscount: null,
+                price: product.listPrice, // Reset to original price
+              },
+            })
+          }
+        }
+      },
+    ],
   },
 }
