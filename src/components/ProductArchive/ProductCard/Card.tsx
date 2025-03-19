@@ -119,6 +119,8 @@ export const Card: React.FC<{
           color: selectedColor,
         }}
       />
+
+      
     </div>
   )
 

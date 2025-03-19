@@ -1,8 +1,8 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-
-import { Product,  Category } from '@/payload-types'
+import { QRCodeSVG } from 'qrcode.react'
+import { Product, Category } from '@/payload-types'
 import { useSearchParams } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
 import ProductPrice from '@/components/ProductArchive/Price'
@@ -17,12 +17,17 @@ import RichText from '@/components/RichText'
 import RatingSummary from '@/components/ProductArchive/rating-summary'
 import { useAuth } from '@/providers/Auth'
 import ReviewList from '@/components/ProductArchive/review-list'
-
+import { useEffect, useState } from 'react'
 
 export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
   const { id, categories, images, title } = product
- 
-   const { user } = useAuth()
+  const [fullUrl, setFullUrl] = useState('')
+
+  useEffect(() => {
+    setFullUrl(window.location.href)
+  }, [])
+
+  const { user } = useAuth()
 
   const searchParams = useSearchParams()
   const selectedColor =
@@ -98,7 +103,7 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
                   <div className="flex gap-3">
                     <ProductPrice
                       price={product.price}
-                      // listPrice={product.listPrice}
+                      listPrice={product.listPrice}
                       // isDeal={
                       //   (Array.isArray(product.tags) && product.tags.includes('todays-deal')) ||
                       //   (typeof product.tags === 'string' && product.tags === 'todays-deal')
@@ -179,6 +184,13 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
                       />
                     </div>
                   )}
+
+                  <div>
+                    <h3>Share Product</h3>
+                    <div className="flex justify-center mt-2">
+                      <QRCodeSVG value={fullUrl} size={200} />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -189,7 +201,7 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
           <h2 className="h2-bold mb-2" id="reviews">
             Customer Reviews
           </h2>
-          <ReviewList product={product} userId={user?.id } />
+          <ReviewList product={product} userId={user?.id} />
         </section>
 
         <section className="mt-10">
