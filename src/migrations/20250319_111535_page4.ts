@@ -42,10 +42,24 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "flash_sales" DROP COLUMN IF EXISTS "priority";
   ALTER TABLE "flash_sales" DROP COLUMN IF EXISTS "slug";
   ALTER TABLE "flash_sales" DROP COLUMN IF EXISTS "slug_lock";
+  
+  -- First, remove the default value constraint
+  ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" DROP DEFAULT;
+  
+  -- Then change the column type to text
   ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" SET DATA TYPE text;
+  
+  -- Drop the old enum type
   DROP TYPE "public"."enum_flash_sales_status";
+  
+  -- Create the new enum type
   CREATE TYPE "public"."enum_flash_sales_status" AS ENUM('draft', 'scheduled', 'active', 'ended');
-  ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" SET DATA TYPE "public"."enum_flash_sales_status" USING "status"::"public"."enum_flash_sales_status";`)
+  
+  -- Change the column type back to the new enum
+  ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" SET DATA TYPE "public"."enum_flash_sales_status" USING "status"::"public"."enum_flash_sales_status";
+  
+  -- Finally, set the default value
+  ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" SET DEFAULT 'draft'::"public"."enum_flash_sales_status";`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
@@ -78,10 +92,25 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   ALTER TABLE "flash_sales" DROP COLUMN IF EXISTS "stats_total_revenue";
   ALTER TABLE "flash_sales" DROP COLUMN IF EXISTS "stats_total_discount";
   ALTER TABLE "flash_sales" DROP COLUMN IF EXISTS "stats_average_order_value";
+  
+  -- First, remove the default value constraint
+  ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" DROP DEFAULT;
+  
+  -- Then change the column type to text
   ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" SET DATA TYPE text;
+  
+  -- Drop the old enum type
   DROP TYPE "public"."enum_flash_sales_status";
+  
+  -- Create the new enum type
   CREATE TYPE "public"."enum_flash_sales_status" AS ENUM('draft', 'scheduled', 'active', 'completed', 'cancelled');
+  
+  -- Change the column type back to the new enum
   ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" SET DATA TYPE "public"."enum_flash_sales_status" USING "status"::"public"."enum_flash_sales_status";
+  
+  -- Finally, set the default value
+  ALTER TABLE "public"."flash_sales" ALTER COLUMN "status" SET DEFAULT 'draft'::"public"."enum_flash_sales_status";
+  
   DROP TYPE "public"."enum_flash_sales_rules_type";
   DROP TYPE "public"."enum_flash_sales_discount_type";`)
 }
