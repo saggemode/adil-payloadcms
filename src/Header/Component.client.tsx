@@ -15,7 +15,7 @@ import Link from 'next/link'
 
 interface HeaderClientProps {
   data: Header
-  categories: string[]
+  categories: { id: string; title: string }[]
 }
 
 export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories }) => {
@@ -35,7 +35,6 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories }) 
   }, [headerTheme])
 
   return (
-   
     <header className=" relative z-20" {...(theme ? { 'data-theme': theme } : {})}>
       <div className="px-2">
         <div className="flex items-center justify-between">

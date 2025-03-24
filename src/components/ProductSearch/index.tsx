@@ -1,26 +1,45 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, Barcode } from 'lucide-react'
 import BarcodeScanner from '../BarcodeScanner'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function ProductSearch() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showScanner, setShowScanner] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('q') || '')
+  const [showScanner, setShowScanner] = useState(false)
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
+
+  // Update URL when debounced search query changes
+  useCallback(() => {
+    if (debouncedSearchQuery) {
+      const params = new URLSearchParams(searchParams?.toString() || '')
+      params.set('q', debouncedSearchQuery)
+      params.set('page', '1') // Reset to first page on new search
+      router.push(`/search?${params.toString()}`)
+    }
+  }, [debouncedSearchQuery, router, searchParams])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      const params = new URLSearchParams(searchParams?.toString() || '')
+      params.set('q', searchQuery.trim())
+      params.set('page', '1') // Reset to first page on new search
+      router.push(`/search?${params.toString()}`)
     }
   }
 
   const handleBarcodeScan = (barcode: string) => {
-    router.push(`/search?barcode=${encodeURIComponent(barcode)}`)
+    const params = new URLSearchParams(searchParams?.toString() || '')
+    params.set('barcode', barcode)
+    params.set('page', '1') // Reset to first page on new barcode scan
+    router.push(`/search?${params.toString()}`)
   }
 
   return (

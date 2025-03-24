@@ -29,6 +29,11 @@ export const AVAILABLE_PAYMENT_METHODS = [
     commission: 0,
     isDefault: false,
   },
+  {
+    name: 'OPay',
+    commission: 0,
+    isDefault: false,
+  },
 ]
 export const DEFAULT_PAYMENT_METHOD = process.env.DEFAULT_PAYMENT_METHOD || 'PayPal'
 

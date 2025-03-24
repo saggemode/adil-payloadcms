@@ -15,7 +15,7 @@ import { Button } from './ui/button'
 import ProductFilter from './ProductFilter'
 
 interface MobileFiltersProps {
-  categories: string[]
+  categories: { id: string; title: string }[]
   sizes: string[]
   colors: string[]
   tags: string[]
@@ -41,7 +41,13 @@ const MobileFilters = ({ categories, sizes, colors, tags }: MobileFiltersProps) 
           <DrawerTitle className="sr-only">Product Filters</DrawerTitle>
         </DrawerHeader>
         <div className="flex-1 overflow-y-auto px-4 py-2">
-          <ProductFilter categories={categories} sizes={sizes} colors={colors} tags={tags} showCard={false} />
+          <ProductFilter
+            categories={categories}
+            sizes={sizes}
+            colors={colors}
+            tags={tags}
+            showCard={false}
+          />
         </div>
         <DrawerFooter className="border-t pt-2">
           <DrawerClose asChild>

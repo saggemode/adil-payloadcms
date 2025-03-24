@@ -12,9 +12,13 @@ import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { Gutter } from '@payloadcms/ui'
-import Categories from '@/components/Categories'
-import { getAllCategories } from '@/actions/productAction'
+
 import { FlashSaleSection } from '@/components/FlashSale'
+import FeaturedProducts from '@/components/FeaturedProducts'
+import { getAllProducts } from '@/actions/productAction'
+import Newsletter from '@/components/Newsletter'
+import ProductCarouselBanner from '@/components/ProductCarouselBanner'
+import { FeaturedCategories } from '@/components/FeaturedCategories'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -68,7 +72,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 
   const { hero, layout } = page
 
-  const categories = await getAllCategories()
+  const { docs: featuredProducts } = await getAllProducts({ limit: 8, featured: true })
 
   return (
     <article className="pt-16 pb-24">
@@ -80,10 +84,36 @@ export default async function Page({ params: paramsPromise }: Args) {
 
           {draft && <LivePreviewListener />}
           <RenderHero {...hero} />
-         
-          <Gutter className="flex flex-col gap-[100px] mt-[100px] md:gap-[60px]">
-            <Categories categories={categories} />
-            <FlashSaleSection />
+
+          <Gutter className="flex flex-col gap-16 mt-16">
+            {/* Product Carousel Banner */}
+            <section className="w-full">
+              <ProductCarouselBanner />
+            </section>
+
+            {/* Featured Categories Section */}
+            <section className="w-full">
+              <FeaturedCategories />
+            </section>
+
+            {/* Flash Sale Section */}
+            <section className="w-full">
+              <FlashSaleSection />
+            </section>
+
+            {/* Featured Products Section */}
+            <section className="w-full">
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold mb-3">Featured Products</h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Discover our handpicked selection of premium products
+                </p>
+              </div>
+              <FeaturedProducts products={featuredProducts} />
+            </section>
+
+            {/* Newsletter Section */}
+            <Newsletter />
           </Gutter>
         </section>
       ) : (

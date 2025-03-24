@@ -2,10 +2,11 @@ import { Metadata } from 'next'
 
 import ProductSearch from '@/components/ProductSearch'
 import ProductGrid from '@/components/ProductArchive/ProductGrid'
-import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { Product } from '@/payload-types'
+import { getFilteredProducts } from '@/actions/productAction'
+import { ProductsPagination } from '@/components/Pagination/ProductPagination'
 
 export const metadata: Metadata = {
   title: 'Search Products',
@@ -16,39 +17,27 @@ interface SearchPageProps {
   searchParams: Promise<{
     q?: string
     barcode?: string
+    page?: string
   }>
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams
-  const { q, barcode } = params
-  const payload = await getPayload({ config: configPromise })
+  const { q, barcode, page = '1' } = params
+  const pageNumber = Math.max(1, Number.isFinite(Number(page)) ? Number(page) : 1)
 
-  let products: Product[] = []
+  // Use the existing getFilteredProducts function for server-side filtering
+  const result = await getFilteredProducts({
+    query: q || '',
+    limit: 12,
+    page: pageNumber,
+  })
 
-  if (barcode) {
-    // Search by barcode
-    const result = await payload.find({
-      collection: 'products',
-      where: {
-        barcode: {
-          equals: barcode,
-        },
-      },
-    })
-    products = result.docs as Product[]
-  } else if (q) {
-    // Search by text
-    const result = await payload.find({
-      collection: 'products',
-      where: {
-        title: {
-          like: q,
-        },
-      },
-    })
-    products = result.docs as Product[]
+  if (!result.success) {
+    throw new Error('Failed to fetch products')
   }
+
+  const { products = [], totalPages = 1, currentPage = 1 } = result.data || {}
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -57,7 +46,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </div>
 
       {products.length > 0 ? (
-        <ProductGrid products={products} />
+        <>
+          <ProductGrid products={products} />
+          {totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <ProductsPagination page={currentPage} totalPages={totalPages} />
+            </div>
+          )}
+        </>
       ) : (
         <div className="text-center py-12">
           <h2 className="text-2xl font-semibold mb-4">
@@ -65,14 +61,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               ? 'No products found with this barcode'
               : q
                 ? 'No products found matching your search'
-                : 'Search for products'}
+                : 'All Products'}
           </h2>
           <p className="text-gray-600">
             {barcode
               ? 'Try scanning a different barcode or use text search'
               : q
                 ? 'Try different keywords or use barcode scanning'
-                : 'Use the search bar above to find products'}
+                : 'Browse through our complete product catalog'}
           </p>
         </div>
       )}

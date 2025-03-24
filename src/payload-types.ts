@@ -54,6 +54,7 @@ export type SupportedTimezones =
   | 'Asia/Singapore'
   | 'Asia/Tokyo'
   | 'Asia/Seoul'
+  | 'Australia/Brisbane'
   | 'Australia/Sydney'
   | 'Pacific/Guam'
   | 'Pacific/Noumea'
@@ -81,6 +82,9 @@ export interface Config {
     addresses: Address;
     coupons: Coupon;
     'flash-sales': FlashSale;
+    'loyalty-points': LoyaltyPoint;
+    rewards: Reward;
+    'payment-methods': PaymentMethod;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -107,6 +111,9 @@ export interface Config {
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     'flash-sales': FlashSalesSelect<false> | FlashSalesSelect<true>;
+    'loyalty-points': LoyaltyPointsSelect<false> | LoyaltyPointsSelect<true>;
+    rewards: RewardsSelect<false> | RewardsSelect<true>;
+    'payment-methods': PaymentMethodsSelect<false> | PaymentMethodsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -671,6 +678,7 @@ export interface Form {
             label?: string | null;
             width?: number | null;
             defaultValue?: string | null;
+            placeholder?: string | null;
             options?:
               | {
                   label: string;
@@ -1011,6 +1019,80 @@ export interface FlashSale {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "loyalty-points".
+ */
+export interface LoyaltyPoint {
+  id: number;
+  customerId: string;
+  points: number;
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  pointsHistory?:
+    | {
+        points: number;
+        type: 'earned' | 'redeemed' | 'expired' | 'adjusted';
+        description: string;
+        createdAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  rewards?:
+    | {
+        rewardId: string;
+        name: string;
+        pointsCost: number;
+        status: 'available' | 'redeemed' | 'expired';
+        redeemedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  tierHistory?:
+    | {
+        tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+        changedAt: string;
+        reason: string;
+        id?: string | null;
+      }[]
+    | null;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rewards".
+ */
+export interface Reward {
+  id: number;
+  name: string;
+  description: string;
+  pointsCost: number;
+  type: 'discount' | 'free_shipping' | 'free_product' | 'special_access';
+  discountAmount?: number | null;
+  discountType?: ('percentage' | 'fixed') | null;
+  freeProduct?: (number | null) | Product;
+  specialAccessDetails?: string | null;
+  validFrom: string;
+  validUntil: string;
+  isActive?: boolean | null;
+  tierRestrictions?: ('bronze' | 'silver' | 'gold' | 'platinum')[] | null;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-methods".
+ */
+export interface PaymentMethod {
+  id: number;
+  name: string;
+  description: string;
+  icon: 'paypal' | 'credit-card' | 'wallet';
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1249,6 +1331,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'flash-sales';
         value: number | FlashSale;
+      } | null)
+    | ({
+        relationTo: 'loyalty-points';
+        value: number | LoyaltyPoint;
+      } | null)
+    | ({
+        relationTo: 'rewards';
+        value: number | Reward;
+      } | null)
+    | ({
+        relationTo: 'payment-methods';
+        value: number | PaymentMethod;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1849,6 +1943,77 @@ export interface FlashSalesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "loyalty-points_select".
+ */
+export interface LoyaltyPointsSelect<T extends boolean = true> {
+  customerId?: T;
+  points?: T;
+  tier?: T;
+  pointsHistory?:
+    | T
+    | {
+        points?: T;
+        type?: T;
+        description?: T;
+        createdAt?: T;
+        id?: T;
+      };
+  rewards?:
+    | T
+    | {
+        rewardId?: T;
+        name?: T;
+        pointsCost?: T;
+        status?: T;
+        redeemedAt?: T;
+        id?: T;
+      };
+  tierHistory?:
+    | T
+    | {
+        tier?: T;
+        changedAt?: T;
+        reason?: T;
+        id?: T;
+      };
+  createdAt?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rewards_select".
+ */
+export interface RewardsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  pointsCost?: T;
+  type?: T;
+  discountAmount?: T;
+  discountType?: T;
+  freeProduct?: T;
+  specialAccessDetails?: T;
+  validFrom?: T;
+  validUntil?: T;
+  isActive?: T;
+  tierRestrictions?: T;
+  stock?: T;
+  createdAt?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-methods_select".
+ */
+export interface PaymentMethodsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  icon?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects_select".
  */
 export interface RedirectsSelect<T extends boolean = true> {
@@ -1928,6 +2093,7 @@ export interface FormsSelect<T extends boolean = true> {
               label?: T;
               width?: T;
               defaultValue?: T;
+              placeholder?: T;
               options?:
                 | T
                 | {

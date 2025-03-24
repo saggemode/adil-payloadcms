@@ -15,7 +15,11 @@ import {
 
 import { useAuth } from '@/providers/Auth'
 
-export default function Sidebar({ categories }: { categories: string[] }) {
+interface SidebarProps {
+  categories: { id: string; title: string }[]
+}
+
+export default function Sidebar({ categories }: SidebarProps) {
   const { user } = useAuth()
 
   return (
@@ -62,12 +66,12 @@ export default function Sidebar({ categories }: { categories: string[] }) {
             </div>
             <nav className="flex flex-col">
               {categories.map((category) => (
-                <DrawerClose asChild key={category}>
+                <DrawerClose asChild key={category.id}>
                   <Link
-                    href={`/products?category=${category}`}
+                    href={`/products?category=${category.title}`}
                     className={`flex items-center justify-between item-button`}
                   >
-                    <span>{category}</span>
+                    <span>{category.title}</span>
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </DrawerClose>

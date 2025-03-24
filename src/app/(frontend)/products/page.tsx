@@ -5,7 +5,6 @@ import PageClient from './page.client'
 import { ProductArchive } from '@/components/ProductArchive'
 import {
   getAllCategories,
-  getFilteredProducts,
   getAllSizes,
   getAllColors,
   getAllTagExtra,
@@ -18,6 +17,8 @@ import { Separator } from '@/components/ui/separator'
 import { ProductPageRange } from '@/components/PageRange/ProductsPageRange'
 import { ProductsPagination } from '@/components/Pagination/ProductPagination'
 import ProductFilter from '@/components/ProductFilter'
+import configPromise from '@payload-config'
+import { getPayload } from 'payload'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,59 +42,160 @@ interface PageProps {
 
 export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams
-  const {
-    query = 'all',
-    category = 'all',
-    brand = 'all',
-    color = 'all',
-    size = 'all',
-    price = 'all',
-    rating = 'all',
-    sort = 'best-selling',
-    page = '1',
-  } = params
-
-  // Validate and sanitize numeric values
-  const pageNumber = Math.max(1, Number.isFinite(Number(page)) ? Number(page) : 1)
-
-  let priceRange = { min: 0, max: 1000000 }
-  if (price !== 'all') {
-    const [minStr = '0', maxStr = '1000000'] = price.split('-')
-    const minPrice = Number(minStr)
-    const maxPrice = Number(maxStr)
-
-    if (Number.isFinite(minPrice) && Number.isFinite(maxPrice)) {
-      priceRange = {
-        min: Math.max(0, minPrice),
-        max: Math.min(1000000, maxPrice),
-      }
-    }
-  }
-
   const categories = await getAllCategories()
   const sizes = await getAllSizes()
   const colors = await getAllColors()
   const tags = await getAllTagExtra()
 
   try {
-    const filteredProducts = await getFilteredProducts({
-      query,
-      category,
-      brand,
-      color,
-      size,
-      price: `${priceRange.min}-${priceRange.max}`,
-      rating,
-      sort,
-      limit: 12,
-      page: pageNumber,
-    })
+    const payload = await getPayload({ config: configPromise })
 
-    if (!filteredProducts?.success) {
-      throw new Error('Failed to fetch products')
+    // Build where clause based on search parameters
+    const where: any = {
+      isPublished: {
+        equals: true,
+      },
     }
 
-    const { products = [], totalPages = 1, currentPage = 1 } = filteredProducts.data || {}
+    // Add search query filter
+    if (params.query) {
+      where.title = {
+        like: params.query,
+      }
+    }
+
+    // Add category filter
+    if (params.category && params.category !== 'all') {
+      where.categories = {
+        contains: params.category,
+      }
+    }
+
+    // Add tag filter
+    if (params.tag && params.tag !== 'all') {
+      where.tags = {
+        contains: params.tag,
+      }
+    }
+
+    // Add color filter
+    if (params.color && params.color !== 'all') {
+      where.colors = {
+        contains: params.color.toLowerCase(),
+      }
+    }
+
+    // Add size filter
+    if (params.size && params.size !== 'all') {
+      where.sizes = {
+        contains: params.size.toLowerCase(),
+      }
+    }
+
+    // Add price range filter
+    if (params.price && params.price !== '0-1000000') {
+      const [minPrice, maxPrice] = params.price.split('-').map(Number)
+      where.price = {
+        greater_than_equal: minPrice,
+        less_than_equal: maxPrice,
+      }
+    }
+
+    // Add rating filter
+    if (params.rating && params.rating !== 'all') {
+      where.avgRating = {
+        greater_than_equal: Number(params.rating),
+      }
+    }
+
+    // Add sorting
+    let sort = '-createdAt' // Default sort
+    if (params.sort) {
+      switch (params.sort) {
+        case 'price-low-to-high':
+          sort = 'price'
+          break
+        case 'price-high-to-low':
+          sort = '-price'
+          break
+        case 'best-selling':
+          sort = '-numSales'
+          break
+        case 'avg-customer-review':
+          sort = '-avgRating'
+          break
+        default:
+          sort = '-createdAt'
+      }
+    }
+
+    const products = await payload.find({
+      collection: 'products',
+      depth: 1,
+      limit: 12,
+      page: Number(params.page) || 1,
+      where,
+      sort,
+      overrideAccess: false,
+      select: {
+        title: true,
+        slug: true,
+        categories: true,
+        meta: true,
+        price: true,
+        listPrice: true,
+        countInStock: true,
+        numSales: true,
+        avgRating: true,
+        numReviews: true,
+        images: true,
+        content: true,
+        tags: true,
+        brands: true,
+        colors: true,
+        sizes: true,
+        isPublished: true,
+        isFeatured: true,
+        createdAt: true,
+        updatedAt: true,
+        _status: true,
+      },
+    })
+
+    if (!products) {
+      return (
+        <main className="pb-20">
+          <PageClient />
+          <div className="max-w-frame mx-auto px-4 xl:px-0">
+            <Separator />
+            <BreadcrumbProduct title={''} />
+            <div className="flex md:space-x-5 items-start">
+              <div className="hidden md:block min-w-[295px] max-w-[295px]">
+                <ProductFilter categories={categories} sizes={sizes} colors={colors} tags={tags} />
+              </div>
+              <div className="flex flex-col w-full space-y-5">
+                <div className="flex flex-col lg:flex-row lg:justify-between">
+                  <div className="flex items-center justify-between">
+                    <h1 className="font-bold text-2xl md:text-[32px] dark:text-white">Products</h1>
+                    <MobileFilters
+                      categories={categories}
+                      sizes={sizes}
+                      colors={colors}
+                      tags={tags}
+                    />
+                  </div>
+                </div>
+                <div className="w-full text-center py-10">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No products found for the selected filters.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      )
+    }
 
     return (
       <main className="pb-20">
@@ -120,18 +222,20 @@ export default async function Page({ searchParams }: PageProps) {
                   <span className="text-sm md:text-base mr-3 dark:text-gray-300">
                     <ProductPageRange
                       collection="products"
-                      currentPage={currentPage}
+                      currentPage={products.page}
                       limit={12}
-                      totalDocs={products.length}
+                      totalDocs={products.totalDocs}
                     />
                   </span>
                 </div>
               </div>
               <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-                <ProductArchive products={products} />
+                <ProductArchive products={products.docs} />
               </div>
 
-              {totalPages > 1 && <ProductsPagination page={currentPage} totalPages={totalPages} />}
+              {products.totalPages > 1 && products.page && (
+                <ProductsPagination page={products.page} totalPages={products.totalPages} />
+              )}
             </div>
           </div>
         </div>

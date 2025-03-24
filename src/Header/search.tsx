@@ -17,7 +17,7 @@ import { Command, CommandEmpty, CommandGroup, CommandItem } from '@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface SearchClientProps {
-  categories: string[]
+  categories: { id: string; title: string }[]
 }
 
 const SearchClient: React.FC<SearchClientProps> = ({ categories }) => {
@@ -45,8 +45,8 @@ const SearchClient: React.FC<SearchClientProps> = ({ categories }) => {
         <SelectContent position="popper">
           <SelectItem value="all">All</SelectItem>
           {categories.map((category) => (
-            <SelectItem key={category} value={category}>
-              {category}
+            <SelectItem key={category.id} value={category.id}>
+              {category.title}
             </SelectItem>
           ))}
         </SelectContent>

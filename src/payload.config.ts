@@ -1,4 +1,4 @@
-import { sqliteAdapter } from '@payloadcms/db-sqlite'
+// import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import sharp from 'sharp' // sharp-import
@@ -27,6 +27,9 @@ import { Products } from './collections/Products'
 import { Reviews } from './collections/Review'
 import { Addresses } from './collections/Addresses'
 import { Coupons } from './collections/Coupons'
+import LoyaltyPoints from './collections/LoyaltyPoints'
+import Rewards from './collections/Rewards'
+import { PaymentMethods } from './collections/PaymentMethods'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -110,6 +113,10 @@ export default buildConfig({
     Addresses,
     Coupons,
     FlashSales,
+    LoyaltyPoints,
+    Rewards,
+    PaymentMethods,
+    
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
