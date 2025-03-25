@@ -85,6 +85,7 @@ export interface Config {
     'loyalty-points': LoyaltyPoint;
     rewards: Reward;
     'payment-methods': PaymentMethod;
+    'social-media': SocialMedia;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -114,6 +115,7 @@ export interface Config {
     'loyalty-points': LoyaltyPointsSelect<false> | LoyaltyPointsSelect<true>;
     rewards: RewardsSelect<false> | RewardsSelect<true>;
     'payment-methods': PaymentMethodsSelect<false> | PaymentMethodsSelect<true>;
+    'social-media': SocialMediaSelect<false> | SocialMediaSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1093,6 +1095,31 @@ export interface PaymentMethod {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-media".
+ */
+export interface SocialMedia {
+  id: number;
+  platform: 'facebook' | 'twitter' | 'instagram' | 'pinterest' | 'linkedin' | 'whatsapp';
+  isEnabled?: boolean | null;
+  appId?: string | null;
+  appSecret?: string | null;
+  apiKey?: string | null;
+  apiSecret?: string | null;
+  accessToken?: string | null;
+  pinterestAccessToken?: string | null;
+  clientId?: string | null;
+  clientSecret?: string | null;
+  sharingPreferences?: {
+    shareProducts?: boolean | null;
+    shareBlogPosts?: boolean | null;
+    shareFlashSales?: boolean | null;
+  };
+  defaultShareMessage?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1343,6 +1370,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'payment-methods';
         value: number | PaymentMethod;
+      } | null)
+    | ({
+        relationTo: 'social-media';
+        value: number | SocialMedia;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2009,6 +2040,32 @@ export interface PaymentMethodsSelect<T extends boolean = true> {
   description?: T;
   icon?: T;
   isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-media_select".
+ */
+export interface SocialMediaSelect<T extends boolean = true> {
+  platform?: T;
+  isEnabled?: T;
+  appId?: T;
+  appSecret?: T;
+  apiKey?: T;
+  apiSecret?: T;
+  accessToken?: T;
+  pinterestAccessToken?: T;
+  clientId?: T;
+  clientSecret?: T;
+  sharingPreferences?:
+    | T
+    | {
+        shareProducts?: T;
+        shareBlogPosts?: T;
+        shareFlashSales?: T;
+      };
+  defaultShareMessage?: T;
   updatedAt?: T;
   createdAt?: T;
 }

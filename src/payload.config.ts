@@ -1,4 +1,4 @@
-// import { sqliteAdapter } from '@payloadcms/db-sqlite'
+import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import sharp from 'sharp' // sharp-import
@@ -30,6 +30,7 @@ import { Coupons } from './collections/Coupons'
 import LoyaltyPoints from './collections/LoyaltyPoints'
 import Rewards from './collections/Rewards'
 import { PaymentMethods } from './collections/PaymentMethods'
+import { SocialMedia } from './collections/SocialMedia'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -85,17 +86,17 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
 
-  // db: sqliteAdapter({
-  //   client: {
-  //     url: process.env.DATABASE_URI || '',
-  //   },
-  // }),
-
-  db: vercelPostgresAdapter({
-    pool: {
-      connectionString: process.env.POSTGRES_URL || '',
+  db: sqliteAdapter({
+    client: {
+      url: process.env.DATABASE_URI || '',
     },
   }),
+
+  // db: vercelPostgresAdapter({
+  //   pool: {
+  //     connectionString: process.env.POSTGRES_URL || '',
+  //   },
+  // }),
 
   collections: [
     Pages,
@@ -116,7 +117,7 @@ export default buildConfig({
     LoyaltyPoints,
     Rewards,
     PaymentMethods,
-    
+    SocialMedia,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],

@@ -18,6 +18,7 @@ import RatingSummary from '@/components/ProductArchive/rating-summary'
 import { useAuth } from '@/providers/Auth'
 import ReviewList from '@/components/ProductArchive/review-list'
 import { useEffect, useState } from 'react'
+import { SocialShare } from '@/components/SocialShare'
 
 export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
   const { id, categories, images, title } = product
@@ -83,11 +84,10 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
                 <p className="p-medium-16 rounded-full bg-grey-500/10   text-grey-500">
                   <span>brand</span>
                 </p>
-                <h1 className="font-bold text-lg lg:text-xl">
-                  <span>{getCategoryTitle(categories)}</span>
-                </h1>
-
-                <h1 className="font-bold text-lg lg:text-xl">{title}</h1>
+                <div className="flex items-center justify-between">
+                  <h1 className="font-bold text-lg lg:text-xl">{title}</h1>
+                 
+                </div>
                 <div className="flex items-center gap-2">
                   <RatingSummary
                     avgRating={product.avgRating}
@@ -104,10 +104,6 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
                     <ProductPrice
                       price={product.price}
                       listPrice={product.listPrice}
-                      // isDeal={
-                      //   (Array.isArray(product.tags) && product.tags.includes('todays-deal')) ||
-                      //   (typeof product.tags === 'string' && product.tags === 'todays-deal')
-                      // }
                       forListing={false}
                     />
                   </div>

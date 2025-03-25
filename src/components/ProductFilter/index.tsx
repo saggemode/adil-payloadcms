@@ -84,55 +84,31 @@ export default function ProductFilter({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState(searchParams?.get('query') || '')
+  const [mounted, setMounted] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filters, setFilters] = useState<FilterState>(defaultFilters)
 
-  // Initialize filters from URL parameters
-  const [filters, setFilters] = useState<FilterState>(() => {
-    const params = new URLSearchParams(searchParams?.toString() || '')
-    const categoryParam = params.get('category') || 'all'
-    const colorParam = params.get('color') || 'all'
-    const sizeParam = params.get('size') || 'all'
-
-    // Find category by ID
-    const category = categories.find((cat) => cat.id === categoryParam)
-
-    // Find color from URL param
-    const color = colors.find((c) => c.toLowerCase() === colorParam.toLowerCase())
-
-    // Find size from URL param
-    const size = sizes.find((s) => s.toLowerCase() === sizeParam.toLowerCase())
-
-    return {
-      query: params.get('query') || '',
-      category: category?.id || 'all',
-      brand: params.get('brand') || 'all',
-      color: color || 'all',
-      size: size || 'all',
-      tag: params.get('tag') || 'all',
-      price: params.get('price') || DEFAULT_PRICE_RANGE,
-      rating: params.get('rating') || 'all',
-      sort: (params.get('sort') as SortOption) || 'newest-arrivals',
-      page: params.get('page') || '1',
-    }
-  })
-
-  // Update filters when URL changes
+  // Add mounted check to prevent hydration mismatch
   useEffect(() => {
+    setMounted(true)
+    const query = searchParams?.get('query') || ''
+    setSearchQuery(query)
+  }, [searchParams])
+
+  // Move initial filter setup to useEffect
+  useEffect(() => {
+    if (!mounted) return
+
     const params = new URLSearchParams(searchParams?.toString() || '')
     const categoryParam = params.get('category') || 'all'
     const colorParam = params.get('color') || 'all'
     const sizeParam = params.get('size') || 'all'
 
-    // Find category by ID
     const category = categories.find((cat) => cat.id === categoryParam)
-
-    // Find color from URL param
     const color = colors.find((c) => c.toLowerCase() === colorParam.toLowerCase())
-
-    // Find size from URL param
     const size = sizes.find((s) => s.toLowerCase() === sizeParam.toLowerCase())
 
-    const newFilters: FilterState = {
+    setFilters({
       query: params.get('query') || '',
       category: category?.id || 'all',
       brand: params.get('brand') || 'all',
@@ -143,10 +119,8 @@ export default function ProductFilter({
       rating: params.get('rating') || 'all',
       sort: (params.get('sort') as SortOption) || 'newest-arrivals',
       page: params.get('page') || '1',
-    }
-    setSearchQuery(newFilters.query)
-    setFilters(newFilters)
-  }, [searchParams, categories, colors, sizes])
+    })
+  }, [searchParams, categories, colors, sizes, mounted])
 
   const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
     setFilters((prev) => ({
@@ -413,6 +387,10 @@ export default function ProductFilter({
       tags,
     ],
   )
+
+  if (!mounted) {
+    return null // or a loading state
+  }
 
   if (!showCard) {
     return <FilterContent />
