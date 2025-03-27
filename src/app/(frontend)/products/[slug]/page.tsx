@@ -4,18 +4,15 @@ import { PayloadRedirects } from '@/components/PayloadRedirects'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
-import React, { cache, Suspense } from 'react'
-
-import type { Category, Product } from '@/payload-types'
+import React, { Suspense } from 'react'
 
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
- import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
+import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
 import { ProductHero } from '@/heros/ProductHero'
- import { getRelatedProductsByCategory } from '@/actions/productAction'
+import { getRelatedProductsByCategory } from '@/actions/productAction'
 import ProductDetailsSkeleton from './productSkeleton'
-//  import ProductSlider from '@/components/ProductArchive/product-slider'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -58,66 +55,15 @@ export default async function Product({ params: paramsPromise }: Args) {
   const { slug = '' } = await paramsPromise
 
   const url = '/products/' + slug
-  const product = await queryProductBySlug({ slug })
 
-   const getCategoryTitle = (categories: number | Category | null | undefined) => {
-      if (Array.isArray(categories)) {
-        return categories.length > 0 ? categories[0].title : 'Unknown Category'
-      }
-      if (typeof categories === 'object' && categories?.title) {
-        return categories.title
-      }
-      return 'Unknown Category'
-    }
-
-
-const category =
-  typeof product?.categories === 'string'
-    ? product.categories
-    : Array.isArray(product?.categories)
-      ? product.categories[0]?.toString() || '' // Use the first category if it's an array
-      : ''
-
-const relatedProducts =
-  (await getRelatedProductsByCategory({
-    category,
-    productId: product?.id ? String(product.id) : '',
-  })) || []
-
-
-  //console.log('relatedP: ', relatedProducts)
-
-  if (!product) return <PayloadRedirects url={url} />
+  if (!slug) return <PayloadRedirects url={url} />
 
   return (
     <article className="pt-16 pb-16">
-      {/* <PageClient /> */}
       <Suspense fallback={<ProductDetailsSkeleton />}>
-        <PageClient />
-
-        {/* Allows redirects for valid pages too */}
+        <PageClient slug={slug} />
         <PayloadRedirects disableNotFound url={url} />
-
         {draft && <LivePreviewListener />}
-
-        <ProductHero product={product} />
-
-        <div className="flex flex-col items-center pt-8">
-          <div className="container">
-            {/* <RichText className="max-w-[48rem] mx-auto" data={product.content} enableGutter={false} /> */}
-            {product.relatedProducts && product.relatedProducts.length > 0 && (
-              <RelatedProducts
-                className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
-                docs={product.relatedProducts.filter((product) => typeof product === 'object')}
-              />
-            )}
-
-            {/* <ProductSlider
-            products={relatedProducts?.docs || []} // Extract the actual array
-            title={`Best Sellers in ${category}`}
-          /> */}
-          </div>
-        </div>
       </Suspense>
     </article>
   )
@@ -125,29 +71,18 @@ const relatedProducts =
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
-  const product = await queryProductBySlug({ slug })
-
-  return generateMeta({ doc: product })
-}
-
-const queryProductBySlug = cache(async ({ slug }: { slug: string }) => {
-  const { isEnabled: draft } = await draftMode()
-
   const payload = await getPayload({ config: configPromise })
 
   const result = await payload.find({
     collection: 'products',
-    draft,
-    limit: 1,
-    overrideAccess: draft,
-    pagination: false,
     where: {
       slug: {
         equals: slug,
       },
     },
-     
   })
 
-  return result.docs?.[0] || null
-})
+  const product = result.docs?.[0] || null
+
+  return generateMeta({ doc: product })
+}

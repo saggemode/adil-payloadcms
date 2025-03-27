@@ -18,7 +18,7 @@ import RatingSummary from '@/components/ProductArchive/rating-summary'
 import { useAuth } from '@/providers/Auth'
 import ReviewList from '@/components/ProductArchive/review-list'
 import { useEffect, useState } from 'react'
-import { SocialShare } from '@/components/SocialShare'
+
 
 export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
   const { id, categories, images, title } = product
@@ -200,12 +200,7 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
           <ReviewList product={product} userId={user?.id} />
         </section>
 
-        <section className="mt-10">
-          {/* <ProductSlider
-            products={relatedProducts}
-            title={`Best Sellers in ${getCategoryTitle(categories)}`}
-          /> */}
-        </section>
+      
         <section>
           <BrowsingHistoryList className="mt-10" />
         </section>

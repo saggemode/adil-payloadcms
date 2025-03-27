@@ -11,7 +11,6 @@ import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
-import { Gutter } from '@payloadcms/ui'
 
 import { FlashSaleSection } from '@/components/FlashSale'
 import FeaturedProducts from '@/components/FeaturedProducts'
@@ -22,6 +21,7 @@ import { FeaturedCategories } from '@/components/FeaturedCategories'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
+  
   const pages = await payload.find({
     collection: 'pages',
     draft: false,
@@ -85,7 +85,7 @@ export default async function Page({ params: paramsPromise }: Args) {
           {draft && <LivePreviewListener />}
           <RenderHero {...hero} />
 
-          <Gutter className="flex flex-col gap-16 mt-16">
+          <div className="container mx-auto px-4 flex flex-col gap-16 mt-16">
             {/* Product Carousel Banner */}
             <section className="w-full">
               <ProductCarouselBanner />
@@ -114,7 +114,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 
             {/* Newsletter Section */}
             <Newsletter />
-          </Gutter>
+          </div>
         </section>
       ) : (
         <>

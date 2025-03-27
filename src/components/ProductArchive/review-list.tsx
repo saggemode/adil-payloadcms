@@ -41,6 +41,7 @@ import { createUpdateReview, getReviewByProductId, getReviews } from '@/actions/
 import RatingSummary from './rating-summary'
 import { Product } from '@/payload-types'
 import Rating from './rating'
+import { useProductReviews, useUserReview, useCreateUpdateReview } from '@/hooks/useReviews'
 
 const reviewFormDefaultValues = {
   title: '',
@@ -56,92 +57,28 @@ export default function ReviewList({
   product: Product
 }) {
   const [page, setPage] = useState(2)
-  const [totalPages, setTotalPages] = useState(0)
-  const [reviews, setReviews] = useState<IReviewDetails[]>([])
+  const { data: reviewsData, isLoading: isLoadingReviews } = useProductReviews(
+    product.id.toString(),
+    page,
+  )
+  const { data: userReview } = useUserReview(product.id.toString())
+  const createUpdateReviewMutation = useCreateUpdateReview()
   const { ref, inView } = useInView({ triggerOnce: true })
 
   const reload = async () => {
-    try {
-      const res = await getReviews({ productId: product.id.toString(), page: 1 })
-
-      // Transform data to match IReviewDetails
-      const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
-        ...review,
-        id: String(review.id), // Convert id to string
-        product: String(review.product), // Ensure product is a string
-        user: {
-          name:
-            typeof review.user === 'object' && review.user !== null
-              ? review.user.name || 'Anonymous' // Convert user to a string (fallback to 'Anonymous' if null/undefined)
-              : 'Anonymous',
-        },
-        isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
-      }))
-
-      setReviews(formattedReviews)
-      setTotalPages(res.totalPages)
-    } catch (err) {
-      toast({
-        variant: 'destructive',
-        description: 'Error in fetching reviews',
-      })
-    }
+    // No need to manually reload as TanStack Query handles caching and refetching
   }
 
   const loadMoreReviews = async () => {
+    const totalPages = reviewsData?.totalPages ?? 0
     if (totalPages !== 0 && page > totalPages) return
-    setLoadingReviews(true)
-    const res = await getReviews({ productId: String(product.id), page })
-
-    // Transform data to match IReviewDetails
-    const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
-      ...review,
-      id: String(review.id), // Convert id to string
-      product: String(review.product), // Ensure product is a string
-      user: {
-        name:
-          typeof review.user === 'object' && review.user !== null
-            ? review.user.name || 'Anonymous' // Convert user to a string (fallback to 'Anonymous' if null/undefined)
-            : 'Anonymous',
-      },
-      isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
-    }))
-
-    setReviews([...reviews, ...formattedReviews])
-    setTotalPages(res.totalPages)
     setPage(page + 1)
-    setLoadingReviews(false)
   }
-  const [loadingReviews, setLoadingReviews] = useState(false)
 
   useEffect(() => {
-    const loadReviews = async () => {
-      setLoadingReviews(true)
-      const res = await getReviews({ productId: product.id.toString(), page: 1 })
-
-      // Transform data to match IReviewDetails
-      const formattedReviews: IReviewDetails[] = res.data.map((review) => ({
-        ...review,
-        id: String(review.id), // Convert id to string
-        product: String(review.product), // Ensure product is a string
-        user: {
-          name:
-            typeof review.user === 'object' && review.user !== null
-              ? review.user.name || 'Anonymous' // Convert user to a string (fallback to 'Anonymous' if null/undefined)
-              : 'Anonymous',
-        },
-        isVerifiedPurchase: Boolean(review.isVerifiedPurchase), // Ensure boolean
-      }))
-
-      setReviews(formattedReviews)
-      setTotalPages(res.totalPages)
-      setLoadingReviews(false)
-    }
-
     if (inView) {
-      loadReviews()
+      // No need to manually load reviews as TanStack Query handles this
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView])
 
   type CustomerReview = z.infer<typeof ReviewInputSchema>
@@ -153,36 +90,59 @@ export default function ReviewList({
   const { toast } = useToast()
 
   const onSubmit: SubmitHandler<CustomerReview> = async (values) => {
-    const res = await createUpdateReview({
-      data: { ...values, product: product.id }, // Pass product.id as a number
-      path: `/products/${product.slug}`,
-    })
+    try {
+      const res = await createUpdateReviewMutation.mutateAsync({
+        data: { ...values, product: product.id },
+        path: `/products/${product.slug}`,
+      })
 
-    if (!res.success) {
-      return toast({
-        variant: 'destructive',
+      if (!res.success) {
+        return toast({
+          variant: 'destructive',
+          description: res.message,
+        })
+      }
+
+      setOpen(false)
+      toast({
         description: res.message,
       })
+      // Reset page to 1 to show the new review
+      setPage(1)
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        description: 'Failed to submit review',
+      })
     }
-
-    setOpen(false)
-    reload()
-    toast({
-      description: res.message,
-    })
   }
+
   const handleOpenForm = async () => {
     form.setValue('product', product.id)
     form.setValue('user', userId!)
     form.setValue('isVerifiedPurchase', true)
-    const review = await getReviewByProductId({ productId: String(product.id) })
-    if (review) {
-      form.setValue('title', review.title)
-      form.setValue('comment', review.comment)
-      form.setValue('rating', review.rating)
+    if (userReview) {
+      form.setValue('title', userReview.title)
+      form.setValue('comment', userReview.comment)
+      form.setValue('rating', userReview.rating)
     }
     setOpen(true)
   }
+
+  const reviews = (reviewsData?.data || []).map((review) => ({
+    ...review,
+    id: String(review.id),
+    product: String(review.product),
+    user: {
+      name:
+        typeof review.user === 'object' && review.user !== null
+          ? review.user.name || 'Anonymous'
+          : 'Anonymous',
+    },
+    isVerifiedPurchase: Boolean(review.isVerifiedPurchase),
+  }))
+  const totalPages = reviewsData?.totalPages || 0
+
   return (
     <div className="space-y-2">
       {reviews.length === 0 && <div>No reviews yet</div>}
@@ -283,8 +243,12 @@ export default function ReviewList({
                       </div>
 
                       <DialogFooter>
-                        <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
-                          {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
+                        <Button
+                          type="submit"
+                          size="lg"
+                          disabled={createUpdateReviewMutation.isPending}
+                        >
+                          {createUpdateReviewMutation.isPending ? 'Submitting...' : 'Submit'}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -339,7 +303,7 @@ export default function ReviewList({
               </Button>
             )}
 
-            {page < totalPages && loadingReviews && 'Loading'}
+            {page < totalPages && isLoadingReviews && 'Loading'}
           </div>
         </div>
       </div>

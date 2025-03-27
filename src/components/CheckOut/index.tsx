@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShippingAddress } from '@/types'
-import { createOrder } from '@/actions/orderAction'
 import { toast } from '@/hooks/use-toast'
 import { calculateFutureDate, formatDateTime2 } from '@/utilities/generateId'
 import { APP_NAME, AVAILABLE_DELIVERY_DATES, DEFAULT_PAYMENT_METHOD } from '@/constants'
@@ -19,10 +18,11 @@ import CheckoutFooter from './checkout-footer'
 import { useCoupon } from '@/hooks/useCoupon'
 import CouponInput from './CouponInput'
 import CouponSummary from './CouponSummary'
+import { useCreateOrder } from '@/hooks/useOrders'
 
 const CheckoutForm = () => {
-  const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const createOrderMutation = useCreateOrder()
 
   const {
     cart: {
@@ -50,8 +50,7 @@ const CheckoutForm = () => {
   const total = subtotal - discountAmount
 
   const handlePlaceOrder = async () => {
-    setLoading(true)
-    const res = await createOrder({
+    const orderData = {
       items,
       shippingAddress,
       expectedDeliveryDate: calculateFutureDate(
@@ -65,21 +64,29 @@ const CheckoutForm = () => {
       totalPrice: total,
       couponCode: coupon.code ?? undefined,
       discountAmount,
-    })
-    if (!res.success) {
+    }
+
+    try {
+      const res = await createOrderMutation.mutateAsync(orderData)
+      if (!res.success) {
+        toast({
+          description: res.message,
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          description: res.message,
+          variant: 'default',
+        })
+        clearCart()
+        router.push(`/checkout/${res.data?.orderId}`)
+      }
+    } catch (error) {
       toast({
-        description: res.message,
+        description: 'Failed to place order. Please try again.',
         variant: 'destructive',
       })
-    } else {
-      toast({
-        description: res.message,
-        variant: 'default',
-      })
-      clearCart()
-      router.push(`/checkout/${res.data?.orderId}`)
     }
-    setLoading(false)
   }
 
   const handleSelectPaymentMethod = () => {
@@ -261,7 +268,7 @@ const CheckoutForm = () => {
                 <CheckoutSummary
                   isAddressSelected={isAddressSelected}
                   isPaymentMethodSelected={isPaymentMethodSelected}
-                  loading={loading}
+                  loading={createOrderMutation.isPending}
                   itemsPrice={itemsPrice}
                   shippingPrice={shippingPrice}
                   taxPrice={taxPrice}
@@ -276,9 +283,9 @@ const CheckoutForm = () => {
                   <Button
                     onClick={handlePlaceOrder}
                     className="rounded-full w-full flex items-center justify-center gap-2"
-                    disabled={loading}
+                    disabled={createOrderMutation.isPending}
                   >
-                    {loading ? (
+                    {createOrderMutation.isPending ? (
                       <>
                         <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
                         Placing Order...
@@ -307,7 +314,7 @@ const CheckoutForm = () => {
           <CheckoutSummary
             isAddressSelected={isAddressSelected}
             isPaymentMethodSelected={isPaymentMethodSelected}
-            loading={loading}
+            loading={createOrderMutation.isPending}
             itemsPrice={itemsPrice}
             shippingPrice={shippingPrice}
             taxPrice={taxPrice}

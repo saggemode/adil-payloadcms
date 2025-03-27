@@ -5,6 +5,7 @@ import { ThemeProvider } from './Theme'
 import { AuthProvider } from './Auth'
 import { FilterProvider } from './Filter'
 import ClientProviders from './ClientProvider/client-providers'
+import QueryProvider from './QueryProvider/QueryProvider'
 
 export const Providers: React.FC<{
   children: React.ReactNode
@@ -14,8 +15,12 @@ export const Providers: React.FC<{
       <AuthProvider>
         <FilterProvider>
           <HeaderThemeProvider>
-            {/* {children} */}
-            <ClientProviders>{children}</ClientProviders>
+           
+            <ClientProviders>
+            <QueryProvider>
+              {children}   
+              </QueryProvider>
+              </ClientProviders>
           </HeaderThemeProvider>
         </FilterProvider>
       </AuthProvider>
