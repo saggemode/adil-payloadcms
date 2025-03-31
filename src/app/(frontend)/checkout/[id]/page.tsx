@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation'
 import React from 'react'
 import Stripe from 'stripe'
@@ -48,3 +49,39 @@ const CheckoutPaymentPage = async (props: {
 }
 
 export default CheckoutPaymentPage
+
+
+
+
+
+
+
+// import { notFound } from 'next/navigation'
+// import React from 'react'
+// import PaymentWrapper from './payment-wrapper'
+// import { getMeUser } from '@/utilities/getMeUser'
+
+// export const metadata = {
+//   title: 'Payment',
+// }
+
+// const CheckoutPaymentPage = async (props: {
+//   params: Promise<{
+//     id: string
+//   }>
+// }) => {
+//   const params = await props.params
+//   const { id } = params
+//   const { user } = await getMeUser()
+//   const isAdmin = user?.roles?.includes('admin') || false
+
+//   return (
+//     <PaymentWrapper
+//       orderId={id}
+//       paypalClientId={process.env.PAYPAL_CLIENT_ID || 'sb'}
+//       isAdmin={isAdmin}
+//     />
+//   )
+// }
+
+// export default CheckoutPaymentPage

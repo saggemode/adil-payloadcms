@@ -2,34 +2,44 @@
 
 import { useOrderById } from '@/hooks/useOrders'
 import PaymentForm from './payment-form'
-import { getMeUser } from '@/utilities/getMeUser'
 import { useEffect, useState } from 'react'
+import Stripe from 'stripe'
 
 interface PaymentWrapperProps {
   orderId: string
   paypalClientId: string
-  clientSecret: string | null
+  isAdmin: boolean
 }
 
-export default function PaymentWrapper({
-  orderId,
-  paypalClientId,
-  clientSecret,
-}: PaymentWrapperProps) {
-  const { data: order, isLoading, error } = useOrderById(orderId)
-  const [isAdmin, setIsAdmin] = useState(false)
+export default function PaymentWrapper({ orderId, paypalClientId, isAdmin }: PaymentWrapperProps) {
+  const { data: order, isLoading } = useOrderById(orderId)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const { user } = await getMeUser()
-      setIsAdmin(user?.roles?.includes('admin') || false)
+    const initializePayment = async () => {
+      if (order?.paymentMethod === 'Stripe' && !order.isPaid) {
+        const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY as string)
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(order.totalPrice * 100),
+          currency: 'USD',
+          metadata: { orderId: order.id },
+        })
+        setClientSecret(paymentIntent.client_secret)
+      }
     }
-    checkAdmin()
-  }, [])
 
-  if (isLoading) return <div>Loading...</div>
-  if (error) return <div>Error loading order</div>
-  if (!order) return <div>Order not found</div>
+    if (order) {
+      initializePayment()
+    }
+  }, [order])
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (!order) {
+    return <div>Order not found</div>
+  }
 
   return (
     <PaymentForm

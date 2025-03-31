@@ -88,7 +88,12 @@ export default function Sidebar({ categories }: SidebarProps) {
               <Link href="/account" className="item-button">
                 Your account
               </Link>
-            </DrawerClose>{' '}
+            </DrawerClose>
+            <DrawerClose asChild>
+              <Link href="/account/wishlist" className="item-button">
+                Your wishlist
+              </Link>
+            </DrawerClose>
             <DrawerClose asChild>
               <Link href="/page/customer-service" className="item-button">
                 Customer Service

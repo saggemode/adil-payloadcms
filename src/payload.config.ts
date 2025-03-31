@@ -31,6 +31,7 @@ import LoyaltyPoints from './collections/LoyaltyPoints'
 import Rewards from './collections/Rewards'
 import { PaymentMethods } from './collections/PaymentMethods'
 import { SocialMedia } from './collections/SocialMedia'
+import Wishlists from './collections/Wishlists'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -86,17 +87,17 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
 
-  // db: sqliteAdapter({
-  //   client: {
-  //     url: process.env.DATABASE_URI || '',
-  //   },
-  // }),
-
-  db: vercelPostgresAdapter({
-    pool: {
-      connectionString: process.env.POSTGRES_URL || '',
+  db: sqliteAdapter({
+    client: {
+      url: process.env.DATABASE_URI || '',
     },
   }),
+
+  // db: vercelPostgresAdapter({
+  //   pool: {
+  //     connectionString: process.env.POSTGRES_URL || '',
+  //   },
+  // }),
 
   collections: [
     Pages,
@@ -118,6 +119,8 @@ export default buildConfig({
     Rewards,
     PaymentMethods,
     SocialMedia,
+    Wishlists,
+
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],

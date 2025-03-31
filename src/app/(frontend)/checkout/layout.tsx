@@ -9,18 +9,7 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
     <div className="p-4">
       <header className="bg-card mb-4 border-b">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          {/* <Link href='/'>
-            <Image
-              src='/icons/logo.svg'
-              alt='logo'
-              width={70}
-              height={70}
-              style={{
-                maxWidth: '100%',
-                height: 'auto',
-              }}
-            />
-          </Link> */}
+        
           <Link href="/" className="flex items-center header-button font-extrabold text-2xl m-1 ">
             <Logo loading="eager" priority="high" className="invert dark:invert-0" />
           </Link>

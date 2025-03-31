@@ -1,8 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Product } from '@/payload-types'
-import { getAllProducts } from '@/actions/productAction'
 import { Media } from '@/components/Media'
 import {
   Carousel,
@@ -14,22 +12,21 @@ import {
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Autoplay from 'embla-carousel-autoplay'
+import { useFeaturedProductsCarousel } from '@/hooks/useProducts'
 
 export default function ProductCarouselBanner() {
-  const [products, setProducts] = useState<Product[]>([])
+  const { data, isLoading, error } = useFeaturedProductsCarousel()
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { docs } = await getAllProducts({ limit: 5, featured: true })
-        setProducts(docs)
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-    }
+  if (isLoading) {
+    return <div className="w-full h-[300px] bg-gray-200 animate-pulse" />
+  }
 
-    fetchProducts()
-  }, [])
+  if (error) {
+    console.error('Error fetching products:', error)
+    return null
+  }
+
+  const products = data?.docs || []
 
   return (
     <Carousel

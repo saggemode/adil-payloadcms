@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { QrCode } from 'lucide-react'
+import WishlistButton from '../wishlist-button'
 
 export type CardProduct = Pick<
   Product,
@@ -156,6 +157,7 @@ export const Card: React.FC<{
       </Link>
       <div className="flex items-center gap-2 w-full mt-2">
         {!hideAddToCart && <AddButton />}
+        <WishlistButton productId={id?.toString() ?? ''} />
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" size="icon" className="ml-auto">

@@ -60,6 +60,9 @@ export default function UserButton() {
               <Link className="w-full" href="/account/orders" prefetch={true}>
                 <DropdownMenuItem>Your orders</DropdownMenuItem>
               </Link>
+              <Link className="w-full" href="/account/wishlist" prefetch={true}>
+                <DropdownMenuItem>Your wishlist</DropdownMenuItem>
+              </Link>
 
               {user.roles?.includes('admin') && (
                 <Link className="w-full" href="/admin" prefetch={true}>

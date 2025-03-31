@@ -86,6 +86,7 @@ export interface Config {
     rewards: Reward;
     'payment-methods': PaymentMethod;
     'social-media': SocialMedia;
+    wishlists: Wishlist;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -116,6 +117,7 @@ export interface Config {
     rewards: RewardsSelect<false> | RewardsSelect<true>;
     'payment-methods': PaymentMethodsSelect<false> | PaymentMethodsSelect<true>;
     'social-media': SocialMediaSelect<false> | SocialMediaSelect<true>;
+    wishlists: WishlistsSelect<false> | WishlistsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1120,6 +1122,23 @@ export interface SocialMedia {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wishlists".
+ */
+export interface Wishlist {
+  id: number;
+  user: number | User;
+  items?:
+    | {
+        product: number | Product;
+        addedAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1374,6 +1393,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'social-media';
         value: number | SocialMedia;
+      } | null)
+    | ({
+        relationTo: 'wishlists';
+        value: number | Wishlist;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2068,6 +2091,22 @@ export interface SocialMediaSelect<T extends boolean = true> {
   defaultShareMessage?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wishlists_select".
+ */
+export interface WishlistsSelect<T extends boolean = true> {
+  user?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        addedAt?: T;
+        id?: T;
+      };
+  createdAt?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

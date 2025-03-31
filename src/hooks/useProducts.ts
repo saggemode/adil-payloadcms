@@ -40,3 +40,10 @@ export function useUpdateProduct() {
     },
   })
 }
+
+export function useFeaturedProductsCarousel() {
+  return useQuery({
+    queryKey: ['featuredProductsCarousel'],
+    queryFn: () => getAllProducts({ limit: 5, featured: true }),
+  })
+}

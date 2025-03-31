@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatPrice } from '@/utilities/formatPrice'
 import Image from 'next/image'
 import { Product, Category } from '@/payload-types'
+import WishlistButton from '../wishlist-button'
 
 interface ProductData extends Omit<Product, 'categories'> {
   categories?: number | Category | null
@@ -52,6 +53,11 @@ export function ClientProductCard({
             </Badge>
           </div>
         )}
+
+        {/* Wishlist Button */}
+        <div className="absolute top-2 left-2 z-10">
+          <WishlistButton productId={product.id?.toString() || ''} />
+        </div>
       </div>
 
       {/* Product Info */}
