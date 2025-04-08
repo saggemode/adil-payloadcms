@@ -12,6 +12,7 @@ import { cn } from '@/utilities/ui'
 
 import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 const getGreeting = () => {
   const hour = new Date().getHours()
@@ -22,12 +23,16 @@ const getGreeting = () => {
 
 export default function UserButton() {
   const { user, logout } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true)
       await logout()
     } catch (error) {
       console.error('Logout failed:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -79,14 +84,27 @@ export default function UserButton() {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Link className={cn(buttonVariants(), 'w-full')} href="/auth/login">
-                  Sign in
+                <Link 
+                  className={cn(
+                    buttonVariants(), 
+                    'w-full',
+                    isLoading && 'opacity-50 cursor-not-allowed'
+                  )} 
+                  href="/auth/login"
+                >
+                  {isLoading ? 'Loading...' : 'Sign in'}
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuLabel>
               <div className="font-normal">
-                New Customer? <Link href="/auth/register">Sign up</Link>
+                New Customer?{' '}
+                <Link 
+                  className={isLoading ? 'opacity-50 cursor-not-allowed' : ''} 
+                  href="/auth/register"
+                >
+                  Sign up
+                </Link>
               </div>
             </DropdownMenuLabel>
           </DropdownMenuContent>

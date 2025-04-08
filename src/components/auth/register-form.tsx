@@ -54,7 +54,7 @@ import {
   // Add debounced validation for referral code
   useEffect(() => {
     const referralCode = form.watch("referralCode");
-    if (!referralCode) {
+    if (!referralCode || referralCode.trim() === '') {
       setValidationError(undefined);
       setSuccess(undefined);
       return;
@@ -87,7 +87,7 @@ import {
 
     // Only validate if the code is at least 6 characters
     if (referralCode.length >= 6) {
-      const timeoutId = setTimeout(validateCode, 500); // Increased debounce time
+      const timeoutId = setTimeout(validateCode, 500);
       return () => clearTimeout(timeoutId);
     } else {
       setValidationError(undefined);
@@ -119,7 +119,12 @@ import {
          
          if (errorData.errors) {
            // Handle validation errors
-           const errorMessages = Object.values(errorData.errors).flat();
+           const errorMessages = errorData.errors.map((err: any) => {
+             if (err.data?.errors?.[0]?.message) {
+               return err.data.errors[0].message;
+             }
+             return err.message || 'An error occurred during registration';
+           });
            setError(errorMessages.join(', '));
          } else {
            setError(response.statusText || 'Error creating the account.');
