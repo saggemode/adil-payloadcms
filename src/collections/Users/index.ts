@@ -6,6 +6,7 @@ import { checkRole } from './checkRole'
 //import { CustomerSelect } from './ui/CustomerSelect'
 import adminsAndUser from './access/adminsAndUser'
 import { anyone } from '@/access/anyone'
+import { generateReferralCode } from './hooks/generateReferralCode'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -34,7 +35,53 @@ export const Users: CollectionConfig = {
       name: 'name',
       type: 'text',
     },
-
+    {
+      name: 'loyaltyPoints',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        description: 'Points earned through referrals and other activities',
+      },
+    },
+    {
+      name: 'referralCode',
+      type: 'text',
+      unique: true,
+      admin: {
+        description: 'Unique code used for referrals',
+        readOnly: true,
+      },
+      hooks: {
+        beforeChange: [generateReferralCode],
+      },
+    },
+    {
+      name: 'referredBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'User who referred this user',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'totalReferrals',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        description: 'Total number of successful referrals',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'referralRewards',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        description: 'Total rewards earned from referrals',
+        readOnly: true,
+      },
+    },
     {
       name: 'roles',
       type: 'select',
@@ -58,7 +105,6 @@ export const Users: CollectionConfig = {
         beforeChange: [ensureFirstUserIsAdmin],
       },
     },
-
     {
       name: 'stripeCustomerID',
       label: 'Stripe Customer',
@@ -78,7 +124,6 @@ export const Users: CollectionConfig = {
         // },
       },
     },
-
     {
       name: 'skipSync',
       label: 'Skip Sync',

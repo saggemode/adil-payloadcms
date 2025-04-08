@@ -99,6 +99,11 @@ export const RegisterSchema = z.object({
   name: z.string().min(1, {
     message: 'Name is required',
   }),
+  referralCode: z.string()
+    .min(6, { message: 'Referral code must be at least 6 characters' })
+    .max(12, { message: 'Referral code must not exceed 12 characters' })
+    .regex(/^[A-Za-z0-9-_]+$/, { message: 'Referral code can only contain letters, numbers, hyphens, and underscores' })
+    .optional(),
 })
 
 export type RegisterSchemaType = z.infer<typeof RegisterSchema>

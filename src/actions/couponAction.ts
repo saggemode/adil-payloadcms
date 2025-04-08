@@ -17,7 +17,7 @@ export async function validateCoupon(code: string): Promise<ValidateCouponRespon
   try {
     const payload = await getPayload({ config: configPromise })
 
-    const currentDate = new Date()
+    const _currentDate = new Date()
 
     // Find the coupon
     const result = await payload.find({

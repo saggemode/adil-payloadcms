@@ -1,3 +1,5 @@
+'use client'
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   createOrder,
@@ -8,8 +10,10 @@ import {
   deleteOrder,
   createPayPalOrder,
   approvePayPalOrder,
+  revalidateOrderPaths,
 } from '@/actions/orderAction'
 import { Cart } from '@/types'
+import { useState } from 'react'
 
 export function useOrderById(orderId: string) {
   return useQuery({
@@ -38,15 +42,28 @@ export function useCreateOrder() {
 }
 
 export function useUpdateOrderToPaid() {
-  const queryClient = useQueryClient()
+  const [isPending, setIsPending] = useState(false)
 
-  return useMutation({
-    mutationFn: (orderId: string) => updateOrderToPaid(orderId),
-    onSuccess: (_, orderId) => {
-      queryClient.invalidateQueries({ queryKey: ['order', orderId] })
-      queryClient.invalidateQueries({ queryKey: ['myOrders'] })
-    },
-  })
+  const mutate = async (orderId: string) => {
+    try {
+      setIsPending(true)
+      const result = await updateOrderToPaid(orderId)
+      if (result.success) {
+        await revalidateOrderPaths(orderId)
+      }
+      return result
+    } catch (error) {
+      console.error('Error updating order to paid:', error)
+      return { success: false, message: 'Failed to update order' }
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  return {
+    mutate,
+    isPending
+  }
 }
 
 export function useDeliverOrder() {

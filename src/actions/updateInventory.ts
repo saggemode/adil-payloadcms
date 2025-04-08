@@ -25,7 +25,7 @@ export async function updateInventoryAfterPurchase(orderItems: OrderItem[]) {
       const newCountInStock = Math.max(0, (product.countInStock || 0) - item.quantity)
       const newNumSales = (product.numSales || 0) + item.quantity
 
-      // Update product
+      // Update product with revalidation disabled
       await payload.update({
         collection: 'products',
         id: item.product,
@@ -33,6 +33,9 @@ export async function updateInventoryAfterPurchase(orderItems: OrderItem[]) {
           countInStock: newCountInStock,
           numSales: newNumSales,
         },
+        context: {
+          disableRevalidate: true // Disable revalidation during update
+        }
       })
     }
 

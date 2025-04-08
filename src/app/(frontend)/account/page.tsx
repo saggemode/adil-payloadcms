@@ -4,6 +4,9 @@ import { Home, PackageCheckIcon, User } from 'lucide-react'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import React from 'react'
+import LoyaltyPointsDisplay from '@/components/loyalty/LoyaltyPointsDisplay'
+import ReferralCodeDisplay from '@/components/referral/ReferralCodeDisplay'
+import ReferralStatsDisplay from '@/components/referral/ReferralStatsDisplay'
 
 const PAGE_TITLE = 'Your Account'
 export const metadata: Metadata = {
@@ -61,6 +64,15 @@ export default function AccountPage() {
             </CardContent>
           </Link>
         </Card>
+      </div>
+      <div className="mt-8">
+        <LoyaltyPointsDisplay />
+        <div className="mt-4">
+          <ReferralCodeDisplay />
+        </div>
+        <div className="mt-4">
+          <ReferralStatsDisplay />
+        </div>
       </div>
       <BrowsingHistoryList className='mt-16' />
     </div>

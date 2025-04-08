@@ -82,11 +82,15 @@ export interface Config {
     addresses: Address;
     coupons: Coupon;
     'flash-sales': FlashSale;
-    'loyalty-points': LoyaltyPoint;
-    rewards: Reward;
     'payment-methods': PaymentMethod;
     'social-media': SocialMedia;
     wishlists: Wishlist;
+    'loyalty-points': LoyaltyPoint;
+    rewards: Reward;
+    referrals: Referral;
+    'referral-attempts': ReferralAttempt;
+    'referral-analytics': ReferralAnalytic;
+    'referral-rewards': ReferralReward;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -113,11 +117,15 @@ export interface Config {
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     'flash-sales': FlashSalesSelect<false> | FlashSalesSelect<true>;
-    'loyalty-points': LoyaltyPointsSelect<false> | LoyaltyPointsSelect<true>;
-    rewards: RewardsSelect<false> | RewardsSelect<true>;
     'payment-methods': PaymentMethodsSelect<false> | PaymentMethodsSelect<true>;
     'social-media': SocialMediaSelect<false> | SocialMediaSelect<true>;
     wishlists: WishlistsSelect<false> | WishlistsSelect<true>;
+    'loyalty-points': LoyaltyPointsSelect<false> | LoyaltyPointsSelect<true>;
+    rewards: RewardsSelect<false> | RewardsSelect<true>;
+    referrals: ReferralsSelect<false> | ReferralsSelect<true>;
+    'referral-attempts': ReferralAttemptsSelect<false> | ReferralAttemptsSelect<true>;
+    'referral-analytics': ReferralAnalyticsSelect<false> | ReferralAnalyticsSelect<true>;
+    'referral-rewards': ReferralRewardsSelect<false> | ReferralRewardsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -408,6 +416,26 @@ export interface User {
   id: number;
   addresses?: (number | Address)[] | null;
   name?: string | null;
+  /**
+   * Points earned through referrals and other activities
+   */
+  loyaltyPoints?: number | null;
+  /**
+   * Unique code used for referrals
+   */
+  referralCode?: string | null;
+  /**
+   * User who referred this user
+   */
+  referredBy?: (number | null) | User;
+  /**
+   * Total number of successful referrals
+   */
+  totalReferrals?: number | null;
+  /**
+   * Total rewards earned from referrals
+   */
+  referralRewards?: number | null;
   roles?: ('admin' | 'customer' | 'moderator')[] | null;
   stripeCustomerID?: string | null;
   skipSync?: boolean | null;
@@ -1023,6 +1051,61 @@ export interface FlashSale {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-methods".
+ */
+export interface PaymentMethod {
+  id: number;
+  name: string;
+  description: string;
+  icon: 'paypal' | 'credit-card' | 'wallet';
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-media".
+ */
+export interface SocialMedia {
+  id: number;
+  platform: 'facebook' | 'twitter' | 'instagram' | 'pinterest' | 'linkedin' | 'whatsapp';
+  isEnabled?: boolean | null;
+  appId?: string | null;
+  appSecret?: string | null;
+  apiKey?: string | null;
+  apiSecret?: string | null;
+  accessToken?: string | null;
+  pinterestAccessToken?: string | null;
+  clientId?: string | null;
+  clientSecret?: string | null;
+  sharingPreferences?: {
+    shareProducts?: boolean | null;
+    shareBlogPosts?: boolean | null;
+    shareFlashSales?: boolean | null;
+  };
+  defaultShareMessage?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wishlists".
+ */
+export interface Wishlist {
+  id: number;
+  user: number | User;
+  items?:
+    | {
+        product: number | Product;
+        addedAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "loyalty-points".
  */
 export interface LoyaltyPoint {
@@ -1077,65 +1160,288 @@ export interface Reward {
   validFrom: string;
   validUntil: string;
   isActive?: boolean | null;
+  /**
+   * The product whose stock will be used for this reward
+   */
+  linkedProduct: number | Product;
+  /**
+   * This field is automatically updated based on the linked product's stock
+   */
+  stock?: number | null;
   tierRestrictions?: ('bronze' | 'silver' | 'gold' | 'platinum')[] | null;
-  stock: number;
-  createdAt: string;
+  image: number | Media;
   updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payment-methods".
+ * via the `definition` "referrals".
  */
-export interface PaymentMethod {
+export interface Referral {
   id: number;
+  /**
+   * The user who made the referral
+   */
+  referrer: number | User;
+  /**
+   * The user who was referred
+   */
+  referredUser: number | User;
+  /**
+   * The referral code used (from the referrer)
+   */
+  referralCode: string;
+  status: 'pending' | 'completed' | 'expired';
+  /**
+   * The reward tier assigned to this referral
+   */
+  rewardTier: number | ReferralReward;
+  /**
+   * Amount spent by the referred user
+   */
+  purchaseAmount?: number | null;
+  /**
+   * Date when the referral code expires
+   */
+  expiryDate: string;
+  /**
+   * Date when the referral was completed
+   */
+  completedAt?: string | null;
+  /**
+   * Additional notes about the referral
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "referral-rewards".
+ */
+export interface ReferralReward {
+  id: number;
+  /**
+   * Name of the reward tier (e.g., "Standard Referral", "Premium Referral")
+   */
   name: string;
-  description: string;
-  icon: 'paypal' | 'credit-card' | 'wallet';
+  /**
+   * Description of this reward tier
+   */
+  description?: string | null;
+  /**
+   * Fixed amount awarded for successful referral
+   */
+  rewardAmount: number;
+  /**
+   * Type of reward (fixed amount or percentage)
+   */
+  rewardType: 'fixed' | 'percentage';
+  /**
+   * Percentage reward (only used if rewardType is percentage)
+   */
+  rewardPercentage?: number | null;
+  /**
+   * Whether this reward tier is currently active
+   */
   isActive?: boolean | null;
+  /**
+   * Start date for this reward tier
+   */
+  startDate?: string | null;
+  /**
+   * End date for this reward tier
+   */
+  endDate?: string | null;
+  /**
+   * Minimum purchase amount required to qualify for this reward
+   */
+  minimumPurchaseAmount?: number | null;
+  /**
+   * Additional notes about this reward tier
+   */
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "social-media".
+ * via the `definition` "referral-attempts".
  */
-export interface SocialMedia {
+export interface ReferralAttempt {
   id: number;
-  platform: 'facebook' | 'twitter' | 'instagram' | 'pinterest' | 'linkedin' | 'whatsapp';
-  isEnabled?: boolean | null;
-  appId?: string | null;
-  appSecret?: string | null;
-  apiKey?: string | null;
-  apiSecret?: string | null;
-  accessToken?: string | null;
-  pinterestAccessToken?: string | null;
-  clientId?: string | null;
-  clientSecret?: string | null;
-  sharingPreferences?: {
-    shareProducts?: boolean | null;
-    shareBlogPosts?: boolean | null;
-    shareFlashSales?: boolean | null;
+  /**
+   * The referral code that was attempted to be used
+   */
+  referralCode: string;
+  /**
+   * The user who attempted to use the referral code
+   */
+  attemptedBy: number | User;
+  status: 'pending' | 'success' | 'failed';
+  /**
+   * Reason for failure if the attempt was unsuccessful
+   */
+  failureReason?: ('already_referred' | 'invalid_code' | 'expired_code' | 'other') | null;
+  /**
+   * Additional details about the failure
+   */
+  failureDetails?: string | null;
+  /**
+   * IP address of the user who made the attempt
+   */
+  ipAddress?: string | null;
+  /**
+   * Browser/device information of the user
+   */
+  userAgent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "referral-analytics".
+ */
+export interface ReferralAnalytic {
+  id: number;
+  /**
+   * The referral code being analyzed
+   */
+  referralCode: string;
+  /**
+   * The user who owns this referral code
+   */
+  referrer: number | User;
+  /**
+   * Total number of times this code was attempted to be used
+   */
+  totalAttempts: number;
+  /**
+   * Number of successful referrals using this code
+   */
+  successfulAttempts: number;
+  /**
+   * Number of failed attempts using this code
+   */
+  failedAttempts: number;
+  /**
+   * Percentage of successful attempts (0-100)
+   */
+  successRate: number;
+  /**
+   * Total loyalty points awarded through this code
+   */
+  totalPointsAwarded: number;
+  /**
+   * Average purchase amount from referred users
+   */
+  averagePurchaseAmount: number;
+  /**
+   * Total purchase amount from all referred users
+   */
+  totalPurchaseAmount: number;
+  failureBreakdown?: {
+    alreadyReferred?: number | null;
+    invalidCode?: number | null;
+    expiredCode?: number | null;
+    other?: number | null;
   };
-  defaultShareMessage?: string | null;
+  geographicData?: {
+    /**
+     * Map of country codes to attempt counts
+     */
+    countries?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    /**
+     * Map of city names to attempt counts
+     */
+    cities?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  deviceData?: {
+    /**
+     * Map of browser names to attempt counts
+     */
+    browsers?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    /**
+     * Map of OS names to attempt counts
+     */
+    operatingSystems?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    /**
+     * Map of device types to attempt counts
+     */
+    devices?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  timeData?: {
+    /**
+     * Map of hours (0-23) to attempt counts
+     */
+    hourlyDistribution?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    /**
+     * Map of days (0-6) to attempt counts
+     */
+    dailyDistribution?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  /**
+   * When this analytics record was last updated
+   */
+  lastUpdated: string;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "wishlists".
- */
-export interface Wishlist {
-  id: number;
-  user: number | User;
-  items?:
-    | {
-        product: number | Product;
-        addedAt: string;
-        id?: string | null;
-      }[]
-    | null;
-  createdAt: string;
-  updatedAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1379,14 +1685,6 @@ export interface PayloadLockedDocument {
         value: number | FlashSale;
       } | null)
     | ({
-        relationTo: 'loyalty-points';
-        value: number | LoyaltyPoint;
-      } | null)
-    | ({
-        relationTo: 'rewards';
-        value: number | Reward;
-      } | null)
-    | ({
         relationTo: 'payment-methods';
         value: number | PaymentMethod;
       } | null)
@@ -1397,6 +1695,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'wishlists';
         value: number | Wishlist;
+      } | null)
+    | ({
+        relationTo: 'loyalty-points';
+        value: number | LoyaltyPoint;
+      } | null)
+    | ({
+        relationTo: 'rewards';
+        value: number | Reward;
+      } | null)
+    | ({
+        relationTo: 'referrals';
+        value: number | Referral;
+      } | null)
+    | ({
+        relationTo: 'referral-attempts';
+        value: number | ReferralAttempt;
+      } | null)
+    | ({
+        relationTo: 'referral-analytics';
+        value: number | ReferralAnalytic;
+      } | null)
+    | ({
+        relationTo: 'referral-rewards';
+        value: number | ReferralReward;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1747,6 +2069,11 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   addresses?: T;
   name?: T;
+  loyaltyPoints?: T;
+  referralCode?: T;
+  referredBy?: T;
+  totalReferrals?: T;
+  referralRewards?: T;
   roles?: T;
   stripeCustomerID?: T;
   skipSync?: T;
@@ -1997,6 +2324,60 @@ export interface FlashSalesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-methods_select".
+ */
+export interface PaymentMethodsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  icon?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-media_select".
+ */
+export interface SocialMediaSelect<T extends boolean = true> {
+  platform?: T;
+  isEnabled?: T;
+  appId?: T;
+  appSecret?: T;
+  apiKey?: T;
+  apiSecret?: T;
+  accessToken?: T;
+  pinterestAccessToken?: T;
+  clientId?: T;
+  clientSecret?: T;
+  sharingPreferences?:
+    | T
+    | {
+        shareProducts?: T;
+        shareBlogPosts?: T;
+        shareFlashSales?: T;
+      };
+  defaultShareMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wishlists_select".
+ */
+export interface WishlistsSelect<T extends boolean = true> {
+  user?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        addedAt?: T;
+        id?: T;
+      };
+  createdAt?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "loyalty-points_select".
  */
 export interface LoyaltyPointsSelect<T extends boolean = true> {
@@ -2049,64 +2430,107 @@ export interface RewardsSelect<T extends boolean = true> {
   validFrom?: T;
   validUntil?: T;
   isActive?: T;
-  tierRestrictions?: T;
+  linkedProduct?: T;
   stock?: T;
-  createdAt?: T;
+  tierRestrictions?: T;
+  image?: T;
   updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payment-methods_select".
+ * via the `definition` "referrals_select".
  */
-export interface PaymentMethodsSelect<T extends boolean = true> {
+export interface ReferralsSelect<T extends boolean = true> {
+  referrer?: T;
+  referredUser?: T;
+  referralCode?: T;
+  status?: T;
+  rewardTier?: T;
+  purchaseAmount?: T;
+  expiryDate?: T;
+  completedAt?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "referral-attempts_select".
+ */
+export interface ReferralAttemptsSelect<T extends boolean = true> {
+  referralCode?: T;
+  attemptedBy?: T;
+  status?: T;
+  failureReason?: T;
+  failureDetails?: T;
+  ipAddress?: T;
+  userAgent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "referral-analytics_select".
+ */
+export interface ReferralAnalyticsSelect<T extends boolean = true> {
+  referralCode?: T;
+  referrer?: T;
+  totalAttempts?: T;
+  successfulAttempts?: T;
+  failedAttempts?: T;
+  successRate?: T;
+  totalPointsAwarded?: T;
+  averagePurchaseAmount?: T;
+  totalPurchaseAmount?: T;
+  failureBreakdown?:
+    | T
+    | {
+        alreadyReferred?: T;
+        invalidCode?: T;
+        expiredCode?: T;
+        other?: T;
+      };
+  geographicData?:
+    | T
+    | {
+        countries?: T;
+        cities?: T;
+      };
+  deviceData?:
+    | T
+    | {
+        browsers?: T;
+        operatingSystems?: T;
+        devices?: T;
+      };
+  timeData?:
+    | T
+    | {
+        hourlyDistribution?: T;
+        dailyDistribution?: T;
+      };
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "referral-rewards_select".
+ */
+export interface ReferralRewardsSelect<T extends boolean = true> {
   name?: T;
   description?: T;
-  icon?: T;
+  rewardAmount?: T;
+  rewardType?: T;
+  rewardPercentage?: T;
   isActive?: T;
+  startDate?: T;
+  endDate?: T;
+  minimumPurchaseAmount?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "social-media_select".
- */
-export interface SocialMediaSelect<T extends boolean = true> {
-  platform?: T;
-  isEnabled?: T;
-  appId?: T;
-  appSecret?: T;
-  apiKey?: T;
-  apiSecret?: T;
-  accessToken?: T;
-  pinterestAccessToken?: T;
-  clientId?: T;
-  clientSecret?: T;
-  sharingPreferences?:
-    | T
-    | {
-        shareProducts?: T;
-        shareBlogPosts?: T;
-        shareFlashSales?: T;
-      };
-  defaultShareMessage?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "wishlists_select".
- */
-export interface WishlistsSelect<T extends boolean = true> {
-  user?: T;
-  items?:
-    | T
-    | {
-        product?: T;
-        addedAt?: T;
-        id?: T;
-      };
-  createdAt?: T;
-  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

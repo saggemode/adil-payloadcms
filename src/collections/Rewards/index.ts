@@ -1,4 +1,5 @@
 import { CollectionConfig } from "payload"
+import { updateStock } from './hooks/updateStock'
 
 const Rewards: CollectionConfig = {
   slug: 'rewards',
@@ -23,6 +24,7 @@ const Rewards: CollectionConfig = {
       name: 'pointsCost',
       type: 'number',
       required: true,
+      min: 0,
     },
     {
       name: 'type',
@@ -102,6 +104,23 @@ const Rewards: CollectionConfig = {
       defaultValue: true,
     },
     {
+      name: 'linkedProduct',
+      type: 'relationship',
+      relationTo: 'products',
+      required: true,
+      admin: {
+        description: 'The product whose stock will be used for this reward',
+      },
+    },
+    {
+      name: 'stock',
+      type: 'number',
+      admin: {
+        readOnly: true,
+        description: 'This field is automatically updated based on the linked product\'s stock',
+      },
+    },
+    {
       name: 'tierRestrictions',
       type: 'select',
       hasMany: true,
@@ -125,21 +144,15 @@ const Rewards: CollectionConfig = {
       ],
     },
     {
-      name: 'stock',
-      type: 'number',
-      required: true,
-    },
-    {
-      name: 'createdAt',
-      type: 'date',
-      required: true,
-    },
-    {
-      name: 'updatedAt',
-      type: 'date',
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
       required: true,
     },
   ],
+  hooks: {
+    beforeChange: [updateStock],
+  },
 }
 
 export default Rewards

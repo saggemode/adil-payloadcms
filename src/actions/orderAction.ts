@@ -12,6 +12,8 @@ import { OrderInputSchema } from '@/types/validator'
 import { paypal } from './paypal'
 import { Order, SupportedTimezones } from '@/payload-types'
 import { revalidatePath } from 'next/cache'
+import { earnPointsFromPurchase } from '@/actions/loyaltyAction'
+import { completeReferralAction } from '@/actions/referralAction'
 
 export const calcDeliveryDateAndPrice = async ({
   items,
@@ -206,7 +208,22 @@ export async function getOrderById(orderId: string): Promise<Order> {
 export async function updateOrderToPaid(orderId: string) {
   try {
     const payload = await getPayload({ config: configPromise })
-    const order = await payload.update({
+    
+    // First get the complete order data
+    const existingOrder = await payload.findByID({
+      collection: 'orders',
+      id: orderId,
+      depth: 1, // This ensures we get the user data
+    })
+
+    console.log('Found order:', existingOrder)
+
+    if (!existingOrder) {
+      return { success: false, message: 'Order not found' }
+    }
+
+    // Update the order
+    const _order = await payload.update({
       collection: 'orders',
       id: orderId,
       data: {
@@ -215,12 +232,64 @@ export async function updateOrderToPaid(orderId: string) {
       },
     })
 
+    console.log('Updated order:', _order)
+
+    // Award loyalty points for the purchase
+    if (existingOrder.user && typeof existingOrder.user === 'object' && 'id' in existingOrder.user) {
+      console.log('Awarding points for user:', existingOrder.user.id, 'with total:', existingOrder.totalPrice)
+      // Ensure user ID is properly formatted as a string
+      const userId = String(existingOrder.user.id).trim()
+      try {
+        const pointsResult = await earnPointsFromPurchase(userId, existingOrder.totalPrice)
+        console.log('Points award result:', pointsResult)
+        
+        if (!pointsResult.success) {
+          console.error('Failed to award loyalty points:', pointsResult.message)
+        }
+      } catch (pointsError) {
+        console.error('Error awarding loyalty points:', pointsError)
+        // Continue with the order process even if loyalty points fail
+      }
+      
+      // Complete referral if this is the first order for this user
+      try {
+        const user = await payload.findByID({
+          collection: 'users',
+          id: existingOrder.user.id,
+        });
+        
+        // Check if this user has a referral code
+        if (user && user.referralCode) {
+          // Find the referral for this user
+          const referralResult = await payload.find({
+            collection: 'referrals',
+            where: {
+              referredUser: { equals: existingOrder.user.id },
+              status: { equals: 'pending' },
+            },
+          });
+          
+          const firstReferral = referralResult.docs[0];
+          if (firstReferral && typeof firstReferral.id === 'number') {
+            // Complete the referral
+            await completeReferralAction(firstReferral.id.toString());
+          }
+        }
+      } catch (error) {
+        console.error('Error completing referral:', error);
+        // Don't throw the error to avoid disrupting the order process
+      }
+    } else {
+      console.error('No valid user found in order:', existingOrder)
+    }
+
     // Revalidate both the orders list and the specific order page
     revalidatePath('/admin/orders')
     revalidatePath(`/admin/orders/${orderId}`)
 
     return { success: true, message: 'Order paid successfully' }
   } catch (err) {
+    console.error('Error in updateOrderToPaid:', err)
     return { success: false, message: formatError(err) }
   }
 }
@@ -299,7 +368,7 @@ export async function getMyOrders({ limit = PAGE_SIZE, page }: { limit?: number;
     throw new Error('User is not authenticated')
   }
 
-  const skipAmount = (page - 1) * limit
+  const _skipAmount = (page - 1) * limit
   limit = limit || PAGE_SIZE
 
   const { docs: orders, totalDocs } = await payload.find({
@@ -395,14 +464,57 @@ export async function approvePayPalOrder(orderId: string, data: { orderID: strin
     }
 
     // Update the order in Payload
-    const updatedOrder = await payload.update({
+    const _updatedOrder = await payload.update({
       collection: 'orders',
       id: orderId,
       data: updatedData,
     })
 
-    // Optionally send a purchase receipt
-    //await sendPurchaseReceipt({ order: updatedOrder })
+    // Award loyalty points for the purchase
+    if (order.user && typeof order.user === 'object' && 'id' in order.user) {
+      // Ensure user ID is properly formatted as a string
+      const userId = String(order.user.id).trim()
+      try {
+        const pointsResult = await earnPointsFromPurchase(userId, order.totalPrice)
+        console.log('PayPal points award result:', pointsResult)
+        
+        if (!pointsResult.success) {
+          console.error('Failed to award loyalty points for PayPal payment:', pointsResult.message)
+        }
+      } catch (pointsError) {
+        console.error('Error awarding loyalty points for PayPal payment:', pointsError)
+        // Continue with the order process even if loyalty points fail
+      }
+      
+      // Complete referral if this is the first order for this user
+      try {
+        const user = await payload.findByID({
+          collection: 'users',
+          id: order.user.id,
+        });
+        
+        // Check if this user has a referral code
+        if (user && user.referralCode) {
+          // Find the referral for this user
+          const referralResult = await payload.find({
+            collection: 'referrals',
+            where: {
+              referredUser: { equals: order.user.id },
+              status: { equals: 'pending' },
+            },
+          });
+          
+          const firstReferral = referralResult.docs[0];
+          if (firstReferral && typeof firstReferral.id === 'number') {
+            // Complete the referral
+            await completeReferralAction(firstReferral.id.toString());
+          }
+        }
+      } catch (error) {
+        console.error('Error completing referral:', error);
+        // Don't throw the error to avoid disrupting the order process
+      }
+    }
 
     // Revalidate the static path if you are using incremental static regeneration (optional)
     revalidatePath(`/account/orders/${orderId}`)
@@ -414,4 +526,12 @@ export async function approvePayPalOrder(orderId: string, data: { orderID: strin
   } catch (err) {
     return { success: false, message: formatError(err) }
   }
+}
+
+// Function to revalidate order-related paths
+export async function revalidateOrderPaths(orderId: string) {
+  revalidatePath(`/account/orders/${orderId}`)
+  revalidatePath('/account/orders')
+  revalidatePath('/admin/orders')
+  revalidatePath(`/admin/orders/${orderId}`)
 }

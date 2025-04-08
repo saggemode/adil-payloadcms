@@ -5,6 +5,8 @@ import Stripe from 'stripe'
 import { Button } from '@/components/ui/button'
 import { getOrderById } from '@/actions/orderAction'
 import { updateInventoryAfterPurchase } from '@/actions/updateInventory'
+import ReferralCompletionHandler from '@/components/referral/ReferralCompletionHandler'
+import { updateOrderToPaid } from '@/actions/orderAction'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string)
 
@@ -32,6 +34,9 @@ export default async function SuccessPage(props: {
   const isSuccess = paymentIntent.status === 'succeeded'
   if (!isSuccess) return redirect(`/checkout/${id}`)
 
+  // Update order to paid status to trigger loyalty points award
+  await updateOrderToPaid(id)
+
   // Update inventory after successful payment
   if (order.items && order.items.length > 0) {
     const inventoryItems = order.items.map((item) => ({
@@ -50,6 +55,8 @@ export default async function SuccessPage(props: {
           <Link href={`/account/orders/${id}`}>View order</Link>
         </Button>
       </div>
+      
+      <ReferralCompletionHandler orderId={id} />
     </div>
   )
 }

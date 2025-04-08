@@ -23,7 +23,7 @@ export default function WishlistPage() {
   return (
     <div>
       <div className="flex gap-2">
-        <Link href="/account">Your Account</Link>
+        <Link href="/account" className="hover:text-primary transition-colors duration-200">Your Account</Link>
         <span>›</span>
         <span>Your Wishlist</span>
       </div>
@@ -34,7 +34,11 @@ export default function WishlistPage() {
           <CardHeader className="text-3xl">Your Wishlist is empty</CardHeader>
           <CardContent>
             Continue shopping on{' '}
-            <Link href="/products" prefetch={true}>
+            <Link 
+              href="/products" 
+              prefetch={true}
+              className="text-primary hover:text-primary/80 hover:underline transition-all duration-200 font-medium"
+            >
               Products
             </Link>
           </CardContent>

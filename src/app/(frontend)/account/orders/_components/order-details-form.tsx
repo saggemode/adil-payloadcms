@@ -2,7 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-
+import { useUpdateOrderToPaid } from '@/hooks/useOrders'
+import { toast } from '@/components/ui/use-toast'
 
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -17,7 +18,7 @@ import {
 
 import { buttonVariants } from '@/components/ui/button'
 
-import { deliverOrder, updateOrderToPaid } from '@/actions/orderAction'
+import { deliverOrder, updateOrderToPaid, revalidateOrderPaths } from '@/actions/orderAction'
 import ProductPrice from '@/components/ProductArchive/Price'
 import ActionButton from './action-button'
 import { Order } from '@/payload-types'
@@ -46,6 +47,36 @@ export default function OrderDetailsForm({
     deliveredAt,
     expectedDeliveryDate,
   } = order
+
+  const handleMarkAsPaid = async () => {
+    try {
+      const result = await updateOrderToPaid(order.id.toString())
+      if (result.success) {
+        // Revalidate the paths after the action is complete
+        await revalidateOrderPaths(order.id.toString())
+        toast({
+          title: 'Success',
+          description: 'Order marked as paid successfully',
+        })
+        return { success: true, message: 'Order marked as paid successfully' }
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message || 'Failed to update order status',
+          variant: 'destructive',
+        })
+        return { success: false, message: result.message || 'Failed to update order status' }
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to update order status',
+        variant: 'destructive',
+      })
+      return { success: false, message: 'Failed to update order status' }
+    }
+  }
 
   return (
     <div className="grid md:grid-cols-3 md:gap-5">
@@ -159,13 +190,38 @@ export default function OrderDetailsForm({
             {isAdmin && !isPaid && paymentMethod === 'Cash On Delivery' && (
               <ActionButton
                 caption="Mark as paid"
-                action={() => updateOrderToPaid(order.id.toString())}
+                action={handleMarkAsPaid}
               />
             )}
             {isAdmin && isPaid && !isDelivered && (
               <ActionButton
                 caption="Mark as delivered"
-                action={() => deliverOrder(order.id.toString())}
+                action={async () => {
+                  try {
+                    const result = await deliverOrder(order.id.toString())
+                    if (result.success) {
+                      toast({
+                        title: 'Success',
+                        description: 'Order marked as delivered successfully',
+                      })
+                    } else {
+                      toast({
+                        title: 'Error',
+                        description: result.message || 'Failed to update order status',
+                        variant: 'destructive',
+                      })
+                    }
+                    return result
+                  } catch (error) {
+                    console.error('Error updating order status:', error)
+                    toast({
+                      title: 'Error',
+                      description: 'Failed to update order status',
+                      variant: 'destructive',
+                    })
+                    return { success: false, message: 'Failed to update order status' }
+                  }
+                }}
               />
             )}
           </CardContent>

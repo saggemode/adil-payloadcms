@@ -1,4 +1,6 @@
 import type { CollectionSlug, GlobalSlug, Payload, PayloadRequest, File } from 'payload'
+import fs from 'fs'
+import path from 'path'
 
 import { contactForm as contactFormData } from './contact-form'
 import { contact as contactPageData } from './contact-page'
@@ -80,19 +82,12 @@ export const seed = async ({
 
   payload.logger.info(`— Seeding media...`)
 
+  // Use local images instead of fetching from GitHub
   const [image1Buffer, image2Buffer, image3Buffer, hero1Buffer] = await Promise.all([
-    fetchFileByURL(
-      'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/main/templates/website/src/endpoints/seed/image-post1.webp',
-    ),
-    fetchFileByURL(
-      'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/main/templates/website/src/endpoints/seed/image-post2.webp',
-    ),
-    fetchFileByURL(
-      'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/main/templates/website/src/endpoints/seed/image-post3.webp',
-    ),
-    fetchFileByURL(
-      'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/main/templates/website/src/endpoints/seed/image-hero1.webp',
-    ),
+    getLocalImage('image-post1.webp'),
+    getLocalImage('image-post2.webp'),
+    getLocalImage('image-post3.webp'),
+    getLocalImage('image-hero1.webp'),
   ])
 
   const [
@@ -389,5 +384,51 @@ async function fetchFileByURL(url: string): Promise<File> {
     data: Buffer.from(data),
     mimetype: `image/${url.split('.').pop()}`,
     size: data.byteLength,
+  }
+}
+
+// New function to get local images
+async function getLocalImage(filename: string): Promise<File> {
+  const imagePath = path.join(process.cwd(), 'src', 'endpoints', 'seed', 'images', filename)
+  
+  // Check if the file exists
+  if (!fs.existsSync(imagePath)) {
+    // If the file doesn't exist, create a placeholder image
+    console.log(`— Creating placeholder image for ${filename}...`)
+    
+    // Create a simple 1x1 pixel image as a placeholder
+    const placeholderBuffer = Buffer.from([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+      0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x00, 0x00, 0x02,
+      0x00, 0x01, 0x0D, 0x0D, 0x2D, 0x0E, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
+      0x60, 0x82
+    ])
+    
+    // Ensure the directory exists
+    const dir = path.dirname(imagePath)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    
+    // Write the placeholder image
+    fs.writeFileSync(imagePath, placeholderBuffer)
+    
+    return {
+      name: filename,
+      data: placeholderBuffer,
+      mimetype: 'image/png',
+      size: placeholderBuffer.length,
+    }
+  }
+  
+  // Read the existing file
+  const data = fs.readFileSync(imagePath)
+  
+  return {
+    name: filename,
+    data,
+    mimetype: `image/${filename.split('.').pop()}`,
+    size: data.length,
   }
 }
