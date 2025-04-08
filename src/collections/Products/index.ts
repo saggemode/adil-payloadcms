@@ -14,6 +14,7 @@ import { Code } from '../../blocks/Code/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { revalidateDelete, revalidateProduct } from './hooks/revalidateProducts'
+//import { monitorStock } from './hooks/monitorStock'
 
 import {
   MetaDescriptionField,
@@ -335,8 +336,12 @@ export const Products: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    afterChange: [revalidateProduct],
-    //afterRead: [populateAuthors],
+    beforeChange: [
+      //monitorStock
+    ],
+    afterChange: [
+      revalidateProduct
+    ],
     afterDelete: [revalidateDelete],
   },
   versions: {

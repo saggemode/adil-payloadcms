@@ -1,3 +1,5 @@
+'use client'
+
 import {
   LinkAuthenticationElement,
   PaymentElement,
@@ -10,6 +12,7 @@ import { Button } from '@/components/ui/button'
 
 import ProductPrice from '@/components/ProductArchive/Price'
 import { SERVER_URL } from '@/constants'
+import { useNotifications } from '@/contexts/NotificationContext'
 
 export default function StripeForm({
   priceInCents,
@@ -23,6 +26,7 @@ export default function StripeForm({
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>()
   const [email, setEmail] = useState<string>()
+  const { addNotification } = useNotifications()
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -30,6 +34,11 @@ export default function StripeForm({
     if (stripe == null || elements == null || email == null) return
 
     setIsLoading(true)
+    addNotification({
+      type: 'info',
+      message: 'Processing your payment...'
+    });
+    
     stripe
       .confirmPayment({
         elements,
@@ -40,8 +49,16 @@ export default function StripeForm({
       .then(({ error }) => {
         if (error.type === 'card_error' || error.type === 'validation_error') {
           setErrorMessage(error.message)
+          addNotification({
+            type: 'error',
+            message: `Payment failed: ${error.message}`
+          });
         } else {
           setErrorMessage('An unknown error occurred')
+          addNotification({
+            type: 'error',
+            message: 'An unknown error occurred during payment'
+          });
         }
       })
       .finally(() => setIsLoading(false))

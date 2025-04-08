@@ -19,10 +19,12 @@ import { useCoupon } from '@/hooks/useCoupon'
 import CouponInput from './CouponInput'
 import CouponSummary from './CouponSummary'
 import { useCreateOrder } from '@/hooks/useOrders'
+import { useNotifications } from '@/contexts/NotificationContext'
 
 const CheckoutForm = () => {
   const router = useRouter()
   const createOrderMutation = useCreateOrder()
+  const { addNotification } = useNotifications()
 
   const {
     cart: {
@@ -67,13 +69,31 @@ const CheckoutForm = () => {
     }
 
     try {
+      // Show processing notification
+      addNotification({
+        type: 'info',
+        message: 'Processing your order...'
+      });
+      
       const res = await createOrderMutation.mutateAsync(orderData)
       if (!res.success) {
+        // Show error notification
+        addNotification({
+          type: 'error',
+          message: res.message || 'Failed to place order. Please try again.'
+        });
+        
         toast({
           description: res.message,
           variant: 'destructive',
         })
       } else {
+        // Show success notification
+        addNotification({
+          type: 'success',
+          message: `Order placed successfully! Order ID: ${res.data?.orderId}`
+        });
+        
         toast({
           description: res.message,
           variant: 'default',
@@ -82,6 +102,12 @@ const CheckoutForm = () => {
         router.push(`/checkout/${res.data?.orderId}`)
       }
     } catch (error) {
+      // Show error notification
+      addNotification({
+        type: 'error',
+        message: 'Failed to place order. Please try again.'
+      });
+      
       toast({
         description: 'Failed to place order. Please try again.',
         variant: 'destructive',
@@ -92,11 +118,23 @@ const CheckoutForm = () => {
   const handleSelectPaymentMethod = () => {
     setIsAddressSelected(true)
     setIsPaymentMethodSelected(true)
+    
+    // Show notification for payment method selection
+    addNotification({
+      type: 'info',
+      message: `Payment method selected: ${paymentMethod}`
+    });
   }
 
   const handleSelectShippingAddress = (values: ShippingAddress) => {
     setShippingAddress(values)
     setIsAddressSelected(true)
+    
+    // Show notification for shipping address selection
+    addNotification({
+      type: 'success',
+      message: 'Shipping address saved successfully'
+    });
   }
 
   return (
