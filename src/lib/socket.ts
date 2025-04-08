@@ -9,7 +9,7 @@ export const initSocket = () => {
     const httpServer = createServer();
     io = new SocketIOServer(httpServer, {
       cors: {
-        origin: process.env.NEXT_PUBLIC_SITE_URL || '*',
+        origin: process.env.NEXT_PUBLIC_SERVER_URL || '*',
         methods: ['GET', 'POST'],
       },
     });
