@@ -1,4 +1,4 @@
-// Define the notification type
+
 type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
 interface StockUpdate {
