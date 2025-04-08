@@ -36,7 +36,7 @@ export const Users: CollectionConfig = {
       type: 'text',
     },
     {
-      name: 'loyaltyPoints',
+      name: 'loyalty_points',
       type: 'number',
       defaultValue: 0,
       admin: {

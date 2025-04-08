@@ -101,7 +101,7 @@ export const handleReferral: CollectionBeforeChangeHook = async ({
       collection: 'users',
       id: data.referrer,
       data: {
-        loyaltyPoints: (referrer.loyaltyPoints || 0) + referrerPoints,
+        loyalty_points: (referrer.loyalty_points || 0) + referrerPoints,
       } as any,
     })
 
@@ -110,7 +110,7 @@ export const handleReferral: CollectionBeforeChangeHook = async ({
       collection: 'users',
       id: data.referredUser,
       data: {
-        loyaltyPoints: (referredUser.loyaltyPoints || 0) + referredPoints,
+        loyalty_points: (referredUser.loyalty_points || 0) + referredPoints,
       } as any,
     })
 

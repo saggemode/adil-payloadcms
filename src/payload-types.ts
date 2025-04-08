@@ -419,7 +419,7 @@ export interface User {
   /**
    * Points earned through referrals and other activities
    */
-  loyaltyPoints?: number | null;
+  loyalty_points?: number | null;
   /**
    * Unique code used for referrals
    */
@@ -2069,7 +2069,7 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   addresses?: T;
   name?: T;
-  loyaltyPoints?: T;
+  loyalty_points?: T;
   referralCode?: T;
   referredBy?: T;
   totalReferrals?: T;

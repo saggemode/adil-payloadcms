@@ -1,7 +1,7 @@
 import { User as PayloadUser } from 'payload'
 
 export interface User extends PayloadUser {
-  loyaltyPoints?: number
+  loyalty_points?: number
   referralCode?: string
   addresses?: number[]
   name?: string
