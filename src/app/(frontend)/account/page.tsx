@@ -7,6 +7,7 @@ import React from 'react'
 import LoyaltyPointsDisplay from '@/components/loyalty/LoyaltyPointsDisplay'
 import ReferralCodeDisplay from '@/components/referral/ReferralCodeDisplay'
 import ReferralStatsDisplay from '@/components/referral/ReferralStatsDisplay'
+import { EmailRecommendations } from '@/components/Recommendations'
 
 const PAGE_TITLE = 'Your Account'
 export const metadata: Metadata = {
@@ -65,13 +66,19 @@ export default function AccountPage() {
           </Link>
         </Card>
       </div>
-      <div className="mt-8">
-        <LoyaltyPointsDisplay />
-        <div className="mt-4">
-          <ReferralCodeDisplay />
+      <div className="grid md:grid-cols-2 gap-8 mt-8">
+        <div className="space-y-4">
+          <LoyaltyPointsDisplay />
+          <div className="mt-4">
+            <ReferralCodeDisplay />
+          </div>
+          <div className="mt-4">
+            <ReferralStatsDisplay />
+          </div>
         </div>
-        <div className="mt-4">
-          <ReferralStatsDisplay />
+        <div>
+          <h2 className="text-xl font-bold mb-4">Personalized Shopping Experience</h2>
+          <EmailRecommendations />
         </div>
       </div>
       <BrowsingHistoryList className='mt-16' />

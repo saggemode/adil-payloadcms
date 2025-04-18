@@ -1,25 +1,42 @@
 'use client'
 
 import Link from 'next/link'
-import { getWishlist } from '@/actions/wishlistAction'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Trash2 } from 'lucide-react'
-import Image from 'next/image'
-import ProductPrice from '@/components/ProductArchive/Price'
 import WishlistItem from './WishlistItem'
-import { useQuery } from '@tanstack/react-query'
+import { useWishlist } from '@/hooks/use-wishlist'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function WishlistPage() {
-  const { data: wishlist, isLoading } = useQuery({
-    queryKey: ['wishlist'],
-    queryFn: getWishlist,
-  })
+  const { data: wishlist, isLoading } = useWishlist()
 
+  // Loading state with skeleton UI
   if (isLoading) {
-    return <div>Loading...</div>
+    return (
+      <div>
+        <div className="flex gap-2">
+          <Link href="/account" className="hover:text-primary transition-colors duration-200">Your Account</Link>
+          <span>›</span>
+          <span>Your Wishlist</span>
+        </div>
+        <h1 className="h1-bold py-4">Your Wishlist</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, index) => (
+            <Card key={index}>
+              <CardContent className="p-4">
+                <Skeleton className="aspect-square mb-4" />
+                <Skeleton className="h-6 w-2/3 mb-2" />
+                <Skeleton className="h-4 w-1/3 mb-4" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
   }
 
+  // Content with wishlist items
   return (
     <div>
       <div className="flex gap-2">

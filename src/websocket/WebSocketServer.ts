@@ -21,7 +21,7 @@ class WebSocketServer {
 
   private initialize() {
     this.wss.on('connection', (ws: WSClient, req) => {
-      const { query } = parse(req.url!, true);
+     // const { query } = parse(req.url!, true);
       
       // Add client to the set
       this.clients.add(ws);

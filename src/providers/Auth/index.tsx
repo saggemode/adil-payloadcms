@@ -1,212 +1,117 @@
 'use client'
 
 import { User } from '@/payload-types'
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext } from 'react'
+import { 
+  useAuth as useAuthQuery, 
+  useLogin as useLoginMutation,
+  useLogout as useLogoutMutation,
+  useCreateUser as useCreateMutation,
+  useResetPassword as useResetMutation,
+  useForgotPassword as useForgotMutation
+} from '@/hooks/use-auth'
+import { useQueryClient } from '@tanstack/react-query'
 
-
-
-
-type ResetPassword = (args: {
-  password: string
-  passwordConfirm: string
-  token: string
-}) => Promise<void>
-
-type ForgotPassword = (args: { email: string }) => Promise<void> 
-
-type Create = (args: { email: string; password: string; passwordConfirm: string }) => Promise<void> 
-
-type Login = (args: { email: string; password: string }) => Promise<User> 
-
-type Logout = () => Promise<void>
-
+// Define the shape of the auth context
 type AuthContext = {
-  user?: User | null
-  setUser: (user: User | null) => void 
-  logout: Logout
-  login: Login
-  create: Create
-  resetPassword: ResetPassword
-  forgotPassword: ForgotPassword
-  status: undefined | 'loggedOut' | 'loggedIn'
+  user: User | null | undefined
+  isLoading: boolean
+  isSuccess: boolean
+  status: 'loggedIn' | 'loggedOut' | undefined
+  setUser: (user: User) => void
+  login: (args: { email: string; password: string }) => Promise<User>
+  logout: () => Promise<void>
+  create: (args: { email: string; password: string; passwordConfirm: string }) => Promise<void>
+  resetPassword: (args: { password: string; passwordConfirm: string; token: string }) => Promise<void>
+  forgotPassword: (args: { email: string }) => Promise<void>
 }
 
+// Create the auth context
 const Context = createContext({} as AuthContext)
 
+// Auth Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>()
+  // Use the main auth query hook
+  const { 
+    data: authData, 
+    isLoading, 
+    isSuccess 
+  } = useAuthQuery()
 
-  // used to track the single event of logging in or logging out
-  // useful for `useEffect` hooks that should only run once
-  const [status, setStatus] = useState<undefined | 'loggedOut' | 'loggedIn'>()
-  const create = useCallback<Create>(async args => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/create`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: args.email,
-          password: args.password,
-          passwordConfirm: args.passwordConfirm,
-        }),
-      })
+  // Use mutation hooks
+  const loginMutation = useLoginMutation()
+  const logoutMutation = useLogoutMutation()
+  const createMutation = useCreateMutation()
+  const resetMutation = useResetMutation()
+  const forgotMutation = useForgotMutation()
+  const queryClient = useQueryClient()
 
-      if (res.ok) {
-        const { data, errors } = await res.json()
-        if (errors) throw new Error(errors[0].message)
-        setUser(data?.loginUser?.user)
-        setStatus('loggedIn')
-      } else {
-        throw new Error('Invalid login')
-      }
-    } catch (_e) {
-      throw new Error('An error occurred while attempting to login.')
+  // Determine the current user and auth status
+  const user = authData?.user
+  const status = user ? 'loggedIn' : (isSuccess ? 'loggedOut' : undefined)
+
+  // Login handler
+  const login = async (args: { email: string; password: string }): Promise<User> => {
+    const result = await loginMutation.mutateAsync(args)
+    if (!result.success) {
+      throw new Error(result.message || 'Login failed')
     }
-  }, [])
+    return result.user as User
+  }
 
-  const login = useCallback<Login>(async args => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/login`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: args.email,
-          password: args.password,
-        }),
-      })
-
-      if (res.ok) {
-        const { user, errors } = await res.json()
-        if (errors) throw new Error(errors[0].message)
-        setUser(user)
-        setStatus('loggedIn')
-        return user
-      }
-
-      throw new Error('Invalid login')
-    } catch (_e) {
-      throw new Error('An error occurred while attempting to login.')
+  // Logout handler
+  const logout = async (): Promise<void> => {
+    const result = await logoutMutation.mutateAsync()
+    if (!result.success) {
+      throw new Error(result.message || 'Logout failed')
     }
-  }, [])
+  }
 
-  const logout = useCallback<Logout>(async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (res.ok) {
-        setUser(null)
-        setStatus('loggedOut')
-      } else {
-        throw new Error('An error occurred while attempting to logout.')
-      }
-    } catch (_e) {
-      throw new Error('An error occurred while attempting to logout.')
+  // Create user handler
+  const create = async (args: { email: string; password: string; passwordConfirm: string }): Promise<void> => {
+    const result = await createMutation.mutateAsync(args)
+    if (!result.success) {
+      throw new Error(result.message || 'User creation failed')
     }
-  }, [])
+  }
 
-  useEffect(() => {
-    const fetchMe = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/me`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        if (res.ok) {
-          const { user: meUser } = await res.json()
-          setUser(meUser || null)
-          setStatus(meUser ? 'loggedIn' : undefined)
-        } else {
-          throw new Error('An error occurred while fetching your account.')
-        }
-      } catch (_e) {
-        setUser(null)
-        throw new Error('An error occurred while fetching your account.')
-      }
+  // Reset password handler
+  const resetPassword = async (args: { password: string; passwordConfirm: string; token: string }): Promise<void> => {
+    const result = await resetMutation.mutateAsync(args)
+    if (!result.success) {
+      throw new Error(result.message || 'Password reset failed')
     }
+  }
 
-    fetchMe()
-  }, [])
-
-  const forgotPassword = useCallback<ForgotPassword>(async args => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/forgot-password`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: args.email,
-        }),
-      })
-
-      if (res.ok) {
-        const { data, errors } = await res.json()
-        if (errors) throw new Error(errors[0].message)
-        setUser(data?.loginUser?.user)
-      } else {
-        throw new Error('Invalid login')
-      }
-    } catch (_e) {
-      throw new Error('An error occurred while attempting to login.')
+  // Forgot password handler
+  const forgotPassword = async (args: { email: string }): Promise<void> => {
+    const result = await forgotMutation.mutateAsync(args)
+    if (!result.success) {
+      throw new Error(result.message || 'Forgot password request failed')
     }
-  }, [])
+  }
 
-  const resetPassword = useCallback<ResetPassword>(async args => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/reset-password`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          password: args.password,
-          passwordConfirm: args.passwordConfirm,
-          token: args.token,
-        }),
-      })
-
-      if (res.ok) {
-        const { data, errors } = await res.json()
-        if (errors) throw new Error(errors[0].message)
-        setUser(data?.loginUser?.user)
-        setStatus(data?.loginUser?.user ? 'loggedIn' : undefined)
-      } else {
-        throw new Error('Invalid login')
-      }
-    } catch (_e) {
-      throw new Error('An error occurred while attempting to login.')
-    }
-  }, [])
+  // Helper function to update user data in context
+  const setUser = (updatedUser: User): void => {
+    queryClient.setQueryData(['auth'], { 
+      user: updatedUser,
+      success: true 
+    })
+  }
 
   return (
     <Context.Provider
       value={{
         user,
+        isLoading,
+        isSuccess,
+        status,
         setUser,
         login,
         logout,
         create,
         resetPassword,
         forgotPassword,
-        status,
       }}
     >
       {children}
@@ -214,6 +119,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   )
 }
 
-// type UseAuth<T = User> = () => AuthContext 
-type UseAuth = () => AuthContext
-export const useAuth: UseAuth = () => useContext(Context)
+// Hook to use the auth context
+export const useAuth = () => useContext(Context)

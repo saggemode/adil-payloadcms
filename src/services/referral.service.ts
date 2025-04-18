@@ -1,5 +1,5 @@
-import payload from 'payload';
-import { Referral, User } from '@/payload-types';
+
+import {  User } from '@/payload-types';
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 

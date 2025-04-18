@@ -12,6 +12,7 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { FlashSales } from './collections/FlashSales'
+import { InvoiceTemplates } from './collections/InvoiceTemplates'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -132,8 +133,7 @@ export default buildConfig({
     ReferralAttempts,
     ReferralAnalytics,
     ReferralRewards,
-
-
+    InvoiceTemplates,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],

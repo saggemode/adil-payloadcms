@@ -17,17 +17,24 @@ const CURRENCY_CODES = ['NGN', 'EUR', 'GBP'] as const
 const DEFAULT_CURRENCY = 'NGN'
 
 const formatCurrency = (amount: number, currencyCode: string) => {
+  // Ensure amount is a valid number
+  const validAmount = Number.isFinite(amount) ? amount : 0
+
   return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency: currencyCode,
     currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount)
+  }).format(validAmount)
 }
 
 const calculateDiscount = (price: number, listPrice: number): number => {
-  return listPrice > 0 ? Math.abs(Math.round(100 - (price / listPrice) * 100)) : 0
+  // Ensure both values are valid numbers
+  const validPrice = Number.isFinite(price) ? price : 0
+  const validListPrice = Number.isFinite(listPrice) ? listPrice : 0
+  
+  return validListPrice > 0 ? Math.abs(Math.round(100 - (validPrice / validListPrice) * 100)) : 0
 }
 
 const ProductPrice: React.FC<ProductPriceProps> = ({
@@ -40,19 +47,23 @@ const ProductPrice: React.FC<ProductPriceProps> = ({
   currencyCode = DEFAULT_CURRENCY,
   flashSaleDiscount,
 }) => {
+  // Ensure price and listPrice are valid numbers
+  const validPrice = Number.isFinite(price) ? price : 0
+  const validListPrice = Number.isFinite(listPrice) ? listPrice : 0
+
   const validatedCurrency = CURRENCY_CODES.includes(
     currencyCode.toUpperCase() as (typeof CURRENCY_CODES)[number],
   )
     ? currencyCode.toUpperCase()
     : DEFAULT_CURRENCY
 
-  const formattedPrice = formatCurrency(price, validatedCurrency)
-  const formattedListPrice = formatCurrency(listPrice, validatedCurrency)
-  const discountPercent = calculateDiscount(price, listPrice)
+  const formattedPrice = formatCurrency(validPrice, validatedCurrency)
+  const formattedListPrice = formatCurrency(validListPrice, validatedCurrency)
+  const discountPercent = calculateDiscount(validPrice, validListPrice)
 
   if (plain) return formattedPrice
 
-  if (listPrice === 0) {
+  if (validListPrice === 0) {
     return <div className={cn('text-3xl', className)}>{formattedPrice}</div>
   }
 

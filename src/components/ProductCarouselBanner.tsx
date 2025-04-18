@@ -1,6 +1,4 @@
 'use client'
-
-import { Product } from '@/payload-types'
 import { Media } from '@/components/Media'
 import {
   Carousel,

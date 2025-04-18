@@ -121,7 +121,7 @@ export async function getReviews({
 export async function getReviewByProductId({ productId }: { productId: string }) {
   const { user } = await getMeUser()
   if (!user) {
-    throw new Error('User is not authenticated')
+    return null
   }
   const payload = await getPayload({ config: configPromise })
 

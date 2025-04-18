@@ -69,21 +69,31 @@ export const ResetSchema = z.object({
 })
 
 export const RecoverSchema = z.object({
-  password: z.string().min(1, {
-    message: 'Password is required',
-  }),
+  password: z.string()
+    .min(8, { message: 'Password must be at least 8 characters' })
+    .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+    .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+    .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+    .regex(/[^A-Za-z0-9]/, { message: 'Password must contain at least one special character' }),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 })
 
 export type ResetSchemaType = z.infer<typeof ResetSchema>
 
 export const LoginSchema = z.object({
   email: z.string().email({
-    message: 'Email is required',
+    message: 'Please enter a valid email address',
   }),
-  password: z.string().min(1, {
-    message: 'Password is required',
-  }),
-  code: z.optional(z.string()),
+  password: z.string()
+    .min(6, { message: 'Password must be at least 6 characters' }),
+    // .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+    // .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+    // .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+    // .regex(/[^A-Za-z0-9]/, { message: 'Password must contain at least one special character' }),
+  code: z.optional(z.string().length(6, { message: '2FA code must be 6 digits' })),
 })
 
 export type LoginSchemaType = z.infer<typeof LoginSchema>

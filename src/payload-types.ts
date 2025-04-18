@@ -91,6 +91,7 @@ export interface Config {
     'referral-attempts': ReferralAttempt;
     'referral-analytics': ReferralAnalytic;
     'referral-rewards': ReferralReward;
+    'invoice-templates': InvoiceTemplate;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -126,6 +127,7 @@ export interface Config {
     'referral-attempts': ReferralAttemptsSelect<false> | ReferralAttemptsSelect<true>;
     'referral-analytics': ReferralAnalyticsSelect<false> | ReferralAnalyticsSelect<true>;
     'referral-rewards': ReferralRewardsSelect<false> | ReferralRewardsSelect<true>;
+    'invoice-templates': InvoiceTemplatesSelect<false> | InvoiceTemplatesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -908,6 +910,19 @@ export interface Order {
   deliveredAt_tz?: SupportedTimezones;
   createdAt: string;
   createdAt_tz?: SupportedTimezones;
+  invoiceDelivery?: {
+    preferences?: {
+      sendEmail?: boolean | null;
+      sendWhatsApp?: boolean | null;
+      sendSMS?: boolean | null;
+    };
+    status?: {
+      emailSent?: boolean | null;
+      whatsappSent?: boolean | null;
+      smsSent?: boolean | null;
+      lastSentAt?: string | null;
+    };
+  };
   updatedAt: string;
 }
 /**
@@ -1445,6 +1460,39 @@ export interface ReferralAnalytic {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-templates".
+ */
+export interface InvoiceTemplate {
+  id: number;
+  name: string;
+  description?: string | null;
+  /**
+   * Use {{variable}} syntax for dynamic content. Available variables: orderId, customerName, items, totalPrice, shippingAddress, etc.
+   */
+  template: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Set this as the default template for new orders
+   */
+  isDefault?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1719,6 +1767,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'referral-rewards';
         value: number | ReferralReward;
+      } | null)
+    | ({
+        relationTo: 'invoice-templates';
+        value: number | InvoiceTemplate;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2182,6 +2234,25 @@ export interface OrdersSelect<T extends boolean = true> {
   deliveredAt_tz?: T;
   createdAt?: T;
   createdAt_tz?: T;
+  invoiceDelivery?:
+    | T
+    | {
+        preferences?:
+          | T
+          | {
+              sendEmail?: T;
+              sendWhatsApp?: T;
+              sendSMS?: T;
+            };
+        status?:
+          | T
+          | {
+              emailSent?: T;
+              whatsappSent?: T;
+              smsSent?: T;
+              lastSentAt?: T;
+            };
+      };
   updatedAt?: T;
 }
 /**
@@ -2529,6 +2600,18 @@ export interface ReferralRewardsSelect<T extends boolean = true> {
   endDate?: T;
   minimumPurchaseAmount?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-templates_select".
+ */
+export interface InvoiceTemplatesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  template?: T;
+  isDefault?: T;
   updatedAt?: T;
   createdAt?: T;
 }

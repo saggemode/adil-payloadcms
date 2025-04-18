@@ -280,22 +280,42 @@ export async function getAllProducts({
   sort,
   limit,
   page,
+  featured,
 }: any) {
   const payload = await getPayload({ config: configPromise })
 
   // Define filters based on the provided parameters
-  const filters = {
-    ...(query && query !== 'all' && { title: { contains: query } }), // Use contains for partial matching
-    ...(category && category !== 'all' && { category: { equals: category } }),
-    ...(tag && tag !== 'all' && { tags: { contains: tag } }),
-    ...(price &&
-      price !== 'all' && {
-        price: {
-          greater_than_equal: Number(price.split('-')[0]),
-          less_than_equal: Number(price.split('-')[1]),
-        },
-      }),
-    ...(rating && rating !== 'all' && { avgRating: { greater_than_equal: Number(rating) } }),
+  const filters: Record<string, any> = {
+    isPublished: { equals: true }, // Default filter for published products
+  }
+
+  // Add filters conditionally
+  if (query && query !== 'all') {
+    filters.title = { contains: query }
+  }
+  
+  if (category && category !== 'all') {
+    filters.category = { equals: category }
+  }
+  
+  if (tag && tag !== 'all') {
+    filters.tags = { contains: tag }
+  }
+  
+  // Handle price filter
+  if (price && price !== 'all') {
+    const parts = price.split('-')
+    if (parts.length === 2) {
+      filters.price = {
+        greater_than_equal: Number(parts[0]),
+        less_than_equal: Number(parts[1])
+      }
+    }
+  }
+  
+  // Handle rating filter
+  if (rating && rating !== 'all') {
+    filters.avgRating = { greater_than_equal: Number(rating) }
   }
 
   // Define sort order based on the provided sort parameter
@@ -320,6 +340,20 @@ export async function getAllProducts({
     where: filters,
     sort: sortOrder,
   })
+
+  // If featured is true and we have products, filter them client-side
+  // since the 'featured' field doesn't exist in the schema
+  if (featured && products.docs) {
+    // For now, we'll consider the top N products as "featured"
+    // In a real scenario, you should add a 'featured' field to your schema
+    const sortedProducts = [...products.docs].sort((a, b) => {
+      // Sort by numSales (descending)
+      return (b.numSales || 0) - (a.numSales || 0)
+    })
+    
+    products.docs = sortedProducts.slice(0, limit || 8)
+    products.totalDocs = products.docs.length
+  }
 
   return products
 }

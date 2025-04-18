@@ -9,9 +9,7 @@ import React, { Suspense } from 'react'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
-import { RelatedProducts } from '@/blocks/RelatedProducts/Component'
-import { ProductHero } from '@/heros/ProductHero'
-import { getRelatedProductsByCategory } from '@/actions/productAction'
+
 import ProductDetailsSkeleton from './productSkeleton'
 
 export async function generateStaticParams() {

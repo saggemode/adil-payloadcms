@@ -7,27 +7,30 @@ import { FilterProvider } from './Filter'
 import ClientProviders from './ClientProvider/client-providers'
 import QueryProvider from './QueryProvider/QueryProvider'
 import { NotificationProvider } from '@/contexts/NotificationContext'
-import { NotificationCenter } from '@/components/notifications/NotificationCenter'
+import { CompareProvider } from '@/contexts/CompareContext'
+//import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 
 export const Providers: React.FC<{
   children: React.ReactNode
 }> = ({ children }) => {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <FilterProvider>
-          <HeaderThemeProvider>
-            <ClientProviders>
-              <QueryProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <FilterProvider>
+            <HeaderThemeProvider>
+              <ClientProviders>
                 <NotificationProvider>
-                  {children}
-                  {/* <NotificationCenter /> */}
+                  <CompareProvider>
+                    {children}
+                    {/* <NotificationCenter /> */}
+                  </CompareProvider>
                 </NotificationProvider>
-              </QueryProvider>
-            </ClientProviders>
-          </HeaderThemeProvider>
-        </FilterProvider>
-      </AuthProvider>
+              </ClientProviders>
+            </HeaderThemeProvider>
+          </FilterProvider>
+        </AuthProvider>
+      </QueryProvider>
     </ThemeProvider>
   )
 }

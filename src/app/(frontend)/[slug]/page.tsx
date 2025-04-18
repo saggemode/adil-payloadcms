@@ -15,9 +15,11 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { FlashSaleSection } from '@/components/FlashSale'
 import FeaturedProducts from '@/components/FeaturedProducts'
 import { getAllProducts } from '@/actions/productAction'
+import { getTrendingProducts } from '@/actions/trendingProductsAction'
 import Newsletter from '@/components/Newsletter'
 import ProductCarouselBanner from '@/components/ProductCarouselBanner'
 import { FeaturedCategories } from '@/components/FeaturedCategories'
+import TrustBadges from '@/components/TrustBadges'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -73,6 +75,7 @@ export default async function Page({ params: paramsPromise }: Args) {
   const { hero, layout } = page
 
   const { docs: featuredProducts } = await getAllProducts({ limit: 8, featured: true })
+  const { docs: trendingProducts } = await getTrendingProducts({ limit: 4 })
 
   return (
     <article className="pt-16 pb-24">
@@ -112,8 +115,24 @@ export default async function Page({ params: paramsPromise }: Args) {
               <FeaturedProducts products={featuredProducts} />
             </section>
 
+            {/* Trending Products Section */}
+            <section className="w-full">
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold mb-3">Trending Now</h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Our most popular products that everyone&apos;s loving right now
+                </p>
+              </div>
+              <FeaturedProducts products={trendingProducts} />
+            </section>
+
             {/* Newsletter Section */}
             <Newsletter />
+            
+            {/* Trust Badges Section */}
+            <section className="w-full -mt-8">
+              <TrustBadges  />
+            </section>
           </div>
         </section>
       ) : (

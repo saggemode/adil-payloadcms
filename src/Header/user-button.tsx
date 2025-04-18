@@ -10,7 +10,7 @@ import {
 import { useAuth } from '@/providers/Auth'
 import { cn } from '@/utilities/ui'
 
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -22,7 +22,7 @@ const getGreeting = () => {
 }
 
 export default function UserButton() {
-  const { user, logout } = useAuth()
+  const { user, logout, isLoading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   const handleLogout = async () => {
@@ -34,6 +34,23 @@ export default function UserButton() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Loading state UI
+  if (authLoading) {
+    return (
+      <div className="flex gap-2 items-center">
+        <div className="flex items-center">
+          <div className="flex flex-col text-xs text-left">
+            <span className="flex items-center gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>Loading...</span>
+            </span>
+            <span className="font-bold">Account & Orders</span>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

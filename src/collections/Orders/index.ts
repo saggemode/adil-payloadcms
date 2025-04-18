@@ -3,6 +3,7 @@ import { admins } from '@/access/admins'
 import { adminsOrOrderedBy } from './access/adminsOrOrderedBy'
 import { adminsOrLoggedIn } from '@/access/adminsOrLoggedIn'
 import type { CollectionConfig } from 'payload'
+import { sendInvoice } from './hooks/sendInvoice'
 // import { populateOrderedBy } from './hooks/populateOrderedBy'
 // import { LinkToPaymentIntent } from './ui/LinkToPaymentIntent'
 // import { updateUserPurchases } from './hooks/updateUserPurchases'
@@ -12,9 +13,9 @@ import type { CollectionConfig } from 'payload'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
-  // hooks: {
-  //   afterChange: [updateProductStock, sendOrderConfirmationEmail],
-  // },
+  hooks: {
+    afterChange: [sendInvoice],
+  },
   access: {
     read: adminsOrOrderedBy,
     update: admins,
@@ -235,6 +236,61 @@ export const Orders: CollectionConfig = {
       type: 'date',
       timezone: true,
       defaultValue: () => new Date(),
+    },
+    {
+      name: 'invoiceDelivery',
+      type: 'group',
+      fields: [
+        {
+          name: 'preferences',
+          type: 'group',
+          fields: [
+            {
+              name: 'sendEmail',
+              type: 'checkbox',
+              defaultValue: true,
+            },
+            {
+              name: 'sendWhatsApp',
+              type: 'checkbox',
+              defaultValue: false,
+            },
+            {
+              name: 'sendSMS',
+              type: 'checkbox',
+              defaultValue: false,
+            },
+          ],
+        },
+        {
+          name: 'status',
+          type: 'group',
+          fields: [
+            {
+              name: 'emailSent',
+              type: 'checkbox',
+              defaultValue: false,
+            },
+            {
+              name: 'whatsappSent',
+              type: 'checkbox',
+              defaultValue: false,
+            },
+            {
+              name: 'smsSent',
+              type: 'checkbox',
+              defaultValue: false,
+            },
+            {
+              name: 'lastSentAt',
+              type: 'date',
+              admin: {
+                readOnly: true,
+              },
+            },
+          ],
+        },
+      ],
     },
   ],
   timestamps: true,

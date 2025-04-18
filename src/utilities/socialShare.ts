@@ -37,7 +37,7 @@ export async function getSocialMediaConfig(): Promise<SocialMediaConfig[]> {
 export function generateShareUrl(platform: string, content: ShareContent): string {
   const { title, description, url, image } = content
   const encodedTitle = encodeURIComponent(title)
-  const encodedDescription = encodeURIComponent(description)
+  //const encodedDescription = encodeURIComponent(description)
   const encodedUrl = encodeURIComponent(url)
   const encodedImage = image ? encodeURIComponent(image) : ''
 

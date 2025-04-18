@@ -25,13 +25,13 @@ export const GET = async (request: NextRequest) => {
       const { docs } = await payload.find({
         collection: 'products',
         where: {
-          id: { in: productIds },
+          id: { in: productIds.map(id => String(id)) },
         },
       })
 
       // Sort products based on the order of IDs in the request
       products = productIds
-        .map((id) => docs.find((product) => String(product.id) === String(id)))
+        .map(id => docs.find(product => String(product.id) === String(id)))
         .filter(Boolean)
     } else {
       // Fetch products by categories and exclude products with IDs in the list
@@ -40,7 +40,7 @@ export const GET = async (request: NextRequest) => {
         where: {
           categories: { in: categories },
           ...(productIds.length > 0 && {
-            id: { not_in: productIds },
+            id: { not_in: productIds.map(id => String(id)) },
           }),
         },
         limit: 4,

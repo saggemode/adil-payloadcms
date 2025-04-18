@@ -1,12 +1,12 @@
 'use client'
 
-import { Heart  } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAddToWishlist, useIsInWishlist, useRemoveFromWishlist } from '@/hooks/use-wishlist'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { HeartFilledIcon } from '@radix-ui/react-icons'
-
+import { useState, useEffect } from 'react'
 
 interface WishlistButtonProps {
   productId: string
@@ -16,9 +16,16 @@ interface WishlistButtonProps {
 export default function WishlistButton({ productId, className }: WishlistButtonProps) {
   const { toast } = useToast()
   const router = useRouter()
-  const { data: isInWishlistData } = useIsInWishlist(productId)
+  const { data: isInWishlistData, isLoading: isCheckingWishlist } = useIsInWishlist(productId)
   const addToWishlistMutation = useAddToWishlist()
   const removeFromWishlistMutation = useRemoveFromWishlist()
+  const [isInWishlist, setIsInWishlist] = useState(false)
+
+  useEffect(() => {
+    if (isInWishlistData?.success && typeof isInWishlistData.data === 'boolean') {
+      setIsInWishlist(isInWishlistData.data)
+    }
+  }, [isInWishlistData])
 
   const handleWishlistClick = async () => {
     try {
@@ -27,27 +34,55 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
         return
       }
 
-      if (isInWishlistData.data) {
-        const result = await removeFromWishlistMutation.mutateAsync(productId)
-        if (result.success) {
-          toast({
-            description: 'Removed from wishlist',
-          })
-        }
-      } else {
-        const result = await addToWishlistMutation.mutateAsync(productId)
-        if (result.success) {
-          if (result.message === 'Product already in wishlist') {
+      if (isInWishlist) {
+        removeFromWishlistMutation.mutate(productId, {
+          onSuccess: (result) => {
+            if (result.success) {
+              toast({
+                description: 'Removed from wishlist',
+              })
+            } else {
+              toast({
+                variant: 'destructive',
+                description: result.message || 'Failed to remove from wishlist',
+              })
+            }
+          },
+          onError: () => {
             toast({
-              variant: 'default',
-              description: 'Product is already in your wishlist',
-            })
-          } else {
-            toast({
-              description: 'Added to wishlist',
+              variant: 'destructive',
+              description: 'Failed to remove from wishlist',
             })
           }
-        }
+        })
+      } else {
+        addToWishlistMutation.mutate(productId, {
+          onSuccess: (result) => {
+            if (result.success) {
+              if (result.message === 'Product already in wishlist') {
+                toast({
+                  variant: 'default',
+                  description: 'Product is already in your wishlist',
+                })
+              } else {
+                toast({
+                  description: 'Added to wishlist',
+                })
+              }
+            } else {
+              toast({
+                variant: 'destructive',
+                description: result.message || 'Failed to add to wishlist',
+              })
+            }
+          },
+          onError: () => {
+            toast({
+              variant: 'destructive',
+              description: 'Failed to add to wishlist',
+            })
+          }
+        })
       }
     } catch (error) {
       toast({
@@ -61,15 +96,20 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
     <Button
       variant="ghost"
       size="icon"
-      className={className}
-      onClick={handleWishlistClick}
-      aria-label={isInWishlistData?.data ? 'Remove from wishlist' : 'Add to wishlist'}
+      aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+      className={`${className || ''} transition-all duration-200`}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleWishlistClick();
+      }}
+      disabled={addToWishlistMutation.isPending || removeFromWishlistMutation.isPending || isCheckingWishlist}
     >
-      {isInWishlistData?.data ? (
-        <HeartFilledIcon className="h-5 w-5 text-red-500 fill-current" />
+      {isInWishlist ? (
+        <HeartFilledIcon className="w-5 h-5 text-red-500" />
       ) : (
-        <Heart className="h-5 w-5" />
+        <Heart className="w-5 h-5" />
       )}
     </Button>
   )
-} 
+}
