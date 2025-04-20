@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
-  let url = process.env.NEXT_PUBLIC_SERVER_URL
+  const url = process.env.NEXT_PUBLIC_SERVER_URL
 
   useEffect(() => {
     // Initialize socket connection
