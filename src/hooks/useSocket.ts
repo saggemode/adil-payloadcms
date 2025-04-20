@@ -3,17 +3,15 @@ import { io, Socket } from 'socket.io-client';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
-  const url = process.env.NEXT_PUBLIC_SERVER_URL
 
   useEffect(() => {
     // Initialize socket connection
     const initSocket = async () => {
+      // Invoke the socket API to ensure the server is initialized
       await fetch('/api/socket');
-      // socketRef.current = io('http://localhost:3001', {
-      socketRef.current = io(url, {
-        transports: ['websocket'],
-        autoConnect: true,
-      });
+      
+      // Create the client socket connection
+      socketRef.current = io();
 
       socketRef.current.on('connect', () => {
         console.log('Connected to WebSocket server');
