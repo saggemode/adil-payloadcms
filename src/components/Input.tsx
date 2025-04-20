@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { FieldValues, UseFormRegister } from 'react-hook-form'
 import { Input as UIInput } from '@/components/ui/input'
@@ -12,6 +11,8 @@ type Props = {
   type?: 'text' | 'number' | 'password' | 'email'
   validate?: (value: string) => boolean | string
   disabled?: boolean
+  placeholder?: string
+  defaultValue?: string
 }
 
 export const Input: React.FC<Props> = ({
@@ -23,7 +24,23 @@ export const Input: React.FC<Props> = ({
   type = 'text',
   validate,
   disabled,
+  placeholder,
+  defaultValue,
 }) => {
+  // Get the registration properties
+  const registration = register(name, {
+    required,
+    validate,
+    ...(type === 'email'
+      ? {
+          pattern: {
+            value: /\S+@\S+\.\S+/,
+            message: 'Please enter a valid email',
+          },
+        }
+      : {}),
+  });
+  
   return (
     <div className="w-full">
       <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
@@ -33,22 +50,13 @@ export const Input: React.FC<Props> = ({
       <UIInput
         id={name}
         type={type}
+        placeholder={placeholder}
         className={`w-full h-12 px-4 text-base rounded-lg
           ${error ? 'border-red-500 bg-red-100' : 'border-gray-300'}
           ${disabled ? 'bg-gray-100 text-gray-400' : ''}
         `}
-        {...register(name, {
-          required,
-          validate,
-          ...(type === 'email'
-            ? {
-                pattern: {
-                  value: /\S+@\S+\.\S+/,
-                  message: 'Please enter a valid email',
-                },
-              }
-            : {}),
-        })}
+        {...registration}
+        defaultValue={defaultValue}
         disabled={disabled}
       />
       {error && (
