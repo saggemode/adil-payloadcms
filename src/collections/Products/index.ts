@@ -245,9 +245,7 @@ export const Products: CollectionConfig = {
               admin: {
                 position: 'sidebar',
               },
-              access: {
-                read: () => true, // Ensure read access is granted
-              },
+             
               //hasMany: true,
               relationTo: 'categories',
             },
