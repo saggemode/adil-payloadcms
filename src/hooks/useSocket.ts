@@ -1,25 +1,38 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'https://your-socketio-server.com';
 
   useEffect(() => {
-    // Initialize socket connection
+    // Socket.IO with serverless functions on Vercel requires external WebSocket server
     const initSocket = async () => {
-      // Invoke the socket API to ensure the server is initialized
-      await fetch('/api/socket');
-      
-      // Create the client socket connection
-      socketRef.current = io();
+      try {
+        // Connect to external WebSocket server instead of Next.js API route
+        socketRef.current = io(wsUrl, {
+          transports: ['websocket', 'polling'],
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+        });
 
-      socketRef.current.on('connect', () => {
-        console.log('Connected to WebSocket server');
-      });
+        socketRef.current.on('connect', () => {
+          console.log('Connected to WebSocket server');
+          setIsConnected(true);
+        });
 
-      socketRef.current.on('disconnect', () => {
-        console.log('Disconnected from WebSocket server');
-      });
+        socketRef.current.on('connect_error', (err) => {
+          console.error('Socket connection error:', err.message);
+        });
+
+        socketRef.current.on('disconnect', () => {
+          console.log('Disconnected from WebSocket server');
+          setIsConnected(false);
+        });
+      } catch (error) {
+        console.error('Failed to connect to WebSocket server:', error);
+      }
     };
 
     initSocket();
@@ -30,7 +43,7 @@ export const useSocket = () => {
         socketRef.current.disconnect();
       }
     };
-  }, []);
+  }, [wsUrl]);
 
   const joinRoom = (roomId: string) => {
     if (socketRef.current) {
@@ -58,6 +71,7 @@ export const useSocket = () => {
 
   return {
     socket: socketRef.current,
+    isConnected,
     joinRoom,
     leaveRoom,
     subscribeToEvent,
