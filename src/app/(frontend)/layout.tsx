@@ -10,9 +10,12 @@ import { Providers } from '@/providers'
 import { InitTheme } from '@/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import ClientCompareBar from '@/components/ClientCompareBar'
+import dynamic from 'next/dynamic'
 
 import './globals.css'
 import { getServerSideURL } from '@/utilities/getURL'
+
+// Load cart store initializer dynamically on client side
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,6 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <Providers>
+         
           <Header />
           {children}
           <Footer />

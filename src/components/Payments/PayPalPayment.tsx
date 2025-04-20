@@ -10,6 +10,7 @@ import { approvePayPalOrder, createPayPalOrder } from '@/actions/orderAction'
 import { formatError } from '@/utilities/generateId'
 import { Order } from '@/payload-types'
 import { useState } from 'react'
+import useCartStore from '@/hooks/use-cart-store'
 
 interface PayPalPaymentProps {
   order: Order
@@ -19,6 +20,7 @@ interface PayPalPaymentProps {
 export default function PayPalPayment({ order, paypalClientId }: PayPalPaymentProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const { clearCart } = useCartStore()
 
   function PrintLoadingState() {
     const [{ isPending, isRejected }] = usePayPalScriptReducer()
@@ -62,6 +64,11 @@ export default function PayPalPayment({ order, paypalClientId }: PayPalPaymentPr
         description: res.message,
         variant: res.success ? 'default' : 'destructive',
       })
+      
+      // Clear the cart after successful payment
+      if (res.success) {
+        clearCart()
+      }
     } catch (error) {
       toast({
         description: formatError(error),

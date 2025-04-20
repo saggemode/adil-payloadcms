@@ -6,7 +6,7 @@ import { getOrderById } from '@/actions/orderAction'
 import Link from 'next/link'
 import { formatId } from '@/utilities/generateId'
 import OrderDetailsForm from '../_components/order-details-form'
-
+import { ArrowLeft } from 'lucide-react'
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
@@ -34,19 +34,32 @@ export default async function OrderDetailsPage(props: {
   const isAdmin = user?.roles?.includes('admin') || false
 
   return (
-    <>
-      <div className="flex gap-2">
-        <Link href="/account">Your Account</Link>
-        <span>›</span>
-        <Link href="/account/orders">Your Orders</Link>
-        <span>›</span>
-        <span>Order {formatId(order.id.toString())}</span>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/account" className="hover:underline hover:text-primary transition-colors">Your Account</Link>
+          <span>›</span>
+          <Link href="/account/orders" className="hover:underline hover:text-primary transition-colors">Your Orders</Link>
+          <span>›</span>
+          <span className="text-foreground font-medium">Order {formatId(order.id.toString())}</span>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <h1 className="h1-bold">Order {formatId(order.id.toString())}</h1>
+          <Link 
+            href="/account/orders" 
+            className="flex items-center text-sm text-primary hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to orders
+          </Link>
+        </div>
       </div>
-      <h1 className="h1-bold py-4">Order {formatId(order.id.toString())}</h1>
+      
       <OrderDetailsForm
         order={order}
-        isAdmin={isAdmin} // Pass the correct isAdmin value
+        isAdmin={isAdmin}
       />
-    </>
+    </div>
   )
 }

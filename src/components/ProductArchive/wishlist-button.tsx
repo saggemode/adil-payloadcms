@@ -41,6 +41,8 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
               toast({
                 description: 'Removed from wishlist',
               })
+              // Manually update UI state to avoid waiting for revalidation
+              setIsInWishlist(false)
             } else {
               toast({
                 variant: 'destructive',
@@ -56,6 +58,11 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
           }
         })
       } else {
+        // Log product ID for debugging
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Adding to wishlist, product ID:', productId)
+        }
+        
         addToWishlistMutation.mutate(productId, {
           onSuccess: (result) => {
             if (result.success) {
@@ -69,6 +76,8 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
                   description: 'Added to wishlist',
                 })
               }
+              // Manually update UI state to avoid waiting for revalidation
+              setIsInWishlist(true)
             } else {
               toast({
                 variant: 'destructive',

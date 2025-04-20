@@ -159,6 +159,7 @@ const useCartStore = create(
 
     {
       name: 'cart-store',
+      skipHydration: true,
     },
   ),
 )

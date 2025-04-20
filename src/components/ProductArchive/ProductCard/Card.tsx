@@ -145,10 +145,19 @@ export const Card: React.FC<{
               }
             />
             
-            <div className="absolute top-3 right-3 z-10" onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}>
+            <div 
+              className="absolute top-3 right-3 z-10" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Log product ID for debugging
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('Product ID in Card component:', id);
+                }
+              }}
+              data-product-id={id}
+              data-product={JSON.stringify(doc)}
+            >
               <WishlistButton productId={id?.toString() ?? ''} />
             </div>
             

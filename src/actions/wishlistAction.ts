@@ -197,6 +197,7 @@ export async function isInWishlist(productId: string) {
       where: {
         user: { equals: user.id },
       },
+      depth: 2, // Ensure proper population
     })
 
     if (wishlist.docs.length > 0) {
@@ -204,7 +205,13 @@ export async function isInWishlist(productId: string) {
       if (!wishlistDoc) return { success: true, data: false }
       
       const items = wishlistDoc.items || []
-      const exists = items.some((item: any) => item.product === parseInt(productId))
+      const exists = items.some((item: any) => {
+        // Check both for populated objects and IDs
+        if (typeof item.product === 'object' && item.product !== null) {
+          return item.product.id === parseInt(productId);
+        }
+        return item.product === parseInt(productId);
+      });
       return { success: true, data: exists }
     }
 

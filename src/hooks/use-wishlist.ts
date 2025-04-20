@@ -72,7 +72,20 @@ export function useAddToWishlist() {
       const previousWishlist = queryClient.getQueryData<WishlistResponse>(['wishlist'])
       
       // Fetch product data from cache if available
-      let productToAdd: Partial<Product> = { id: parseInt(productId), title: "Loading..." };
+      // Default minimal product data
+      let productToAdd: Partial<Product> = { 
+        id: parseInt(productId), 
+        title: "Loading...",
+        images: [{ 
+          image: { 
+            url: '/placeholder.jpg',
+            id: 0,
+            updatedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+          } 
+        }],
+        price: 0
+      };
       
       // Try to find product in other queries like 'products' or product detail
       const cachedProduct = queryClient.getQueryData<any>(['product', productId]) || 

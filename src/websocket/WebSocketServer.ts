@@ -54,21 +54,35 @@ class WebSocketServer {
     });
 
     this.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
+      if (client.readyState === WSClient.OPEN) {
         client.send(message);
       }
     });
   }
 }
 
-// Create HTTP server
-const server = createServer();
-const wss = new WebSocketServer(server);
+// Only run server-side code on the server
+let wss: WebSocketServer | null = null;
 
-// Start the server
-const PORT = process.env.WS_PORT || 8081;
-server.listen(PORT, () => {
-  console.log(`WebSocket server is running on port ${PORT}`);
-});
+if (typeof window === 'undefined') {
+  try {
+    // Create HTTP server
+    const server = createServer();
+    wss = new WebSocketServer(server);
 
-export default wss; 
+    // Start the server
+    const PORT = process.env.WS_PORT || 8081;
+    server.listen(PORT, () => {
+      console.log(`WebSocket server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Error starting WebSocket server:', error);
+  }
+}
+
+// Export a dummy object for client-side
+const dummyWss = {
+  broadcastStockUpdate: () => {}
+};
+
+export default typeof window === 'undefined' ? (wss || dummyWss) : dummyWss; 

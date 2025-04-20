@@ -1,4 +1,3 @@
-
 import { notFound } from 'next/navigation'
 import React from 'react'
 import Stripe from 'stripe'
@@ -26,13 +25,25 @@ const CheckoutPaymentPage = async (props: {
 
   let client_secret: string | null = null
   if (order.paymentMethod === 'Stripe' && !order.isPaid) {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string)
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(order.totalPrice * 100),
-      currency: 'USD',
-      metadata: { orderId: order.id },
-    })
-    client_secret = paymentIntent.client_secret
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+      
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(order.totalPrice * 100),
+        currency: 'USD',
+        payment_method_types: ['card'],
+        metadata: { 
+          orderId: order.id,
+          customerEmail: user?.email || 'guest@example.com'
+        },
+      });
+      
+      client_secret = paymentIntent.client_secret;
+      console.log("Created payment intent with ID:", paymentIntent.id);
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      // Continue without setting client_secret
+    }
   }
 
   // Check if the user has the 'admin' role

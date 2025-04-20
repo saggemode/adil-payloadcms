@@ -63,10 +63,26 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {wishlist.data.items.map((item, index) => {
-            const product = item.product
-            if (!product || typeof product === 'number') return null
+            const productItem = item.product;
+            
+            // Debug log to see what product data we have
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`Wishlist item ${index}:`, productItem);
+            }
+            
+            // Skip if product is missing or just a reference (not populated)
+            if (!productItem || typeof productItem === 'number') {
+              console.log('Skipping product that is not fully populated:', productItem);
+              return null;
+            }
+            
+            // Make sure the product has an id
+            if (!productItem.id) {
+              console.log('Product missing ID:', productItem);
+              return null;
+            }
 
-            return <WishlistItem key={`${index}-${product.id}`} product={product} />
+            return <WishlistItem key={`${index}-${productItem.id}`} product={productItem} />
           })}
         </div>
       )}

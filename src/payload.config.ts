@@ -37,6 +37,7 @@ import Referrals from './collections/Referrals'
 import ReferralAttempts from './collections/ReferralAttempts'
 import ReferralAnalytics from './collections/ReferralAnalytics'
 import ReferralRewards from './collections/ReferralRewards'
+import { Returns } from './collections/Returns'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -134,6 +135,7 @@ export default buildConfig({
     ReferralAnalytics,
     ReferralRewards,
     InvoiceTemplates,
+    Returns,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],

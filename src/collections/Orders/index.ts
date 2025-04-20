@@ -3,7 +3,7 @@ import { admins } from '@/access/admins'
 import { adminsOrOrderedBy } from './access/adminsOrOrderedBy'
 import { adminsOrLoggedIn } from '@/access/adminsOrLoggedIn'
 import type { CollectionConfig } from 'payload'
-import { sendInvoice } from './hooks/sendInvoice'
+//import { sendInvoice } from './hooks/sendInvoice'
 // import { populateOrderedBy } from './hooks/populateOrderedBy'
 // import { LinkToPaymentIntent } from './ui/LinkToPaymentIntent'
 // import { updateUserPurchases } from './hooks/updateUserPurchases'
@@ -13,9 +13,9 @@ import { sendInvoice } from './hooks/sendInvoice'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
-  hooks: {
-    afterChange: [sendInvoice],
-  },
+  // hooks: {
+  //   afterChange: [sendInvoice],
+  // },
   access: {
     read: adminsOrOrderedBy,
     update: admins,

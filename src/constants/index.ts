@@ -59,3 +59,77 @@ export const AVAILABLE_DELIVERY_DATES = [
 ]
 
 export const USER_ROLES = ['Admin', 'User']
+
+export const REFUND_REASONS = [
+  {
+    label: 'Damaged/Defective',
+    value: 'damaged',
+    description: 'Item arrived damaged or is not functioning as expected',
+  },
+  {
+    label: 'Wrong Item',
+    value: 'wrong_item',
+    description: 'Received a different item than what was ordered',
+  },
+  {
+    label: 'Not as Described',
+    value: 'not_as_described',
+    description: 'Item doesn\'t match the website description or images',
+  },
+  {
+    label: 'Changed Mind',
+    value: 'changed_mind',
+    description: 'No longer want the item (may be subject to restocking fee)',
+  },
+  {
+    label: 'Sizing Issue',
+    value: 'sizing_issue',
+    description: 'Item doesn\'t fit as expected',
+  },
+  {
+    label: 'Other',
+    value: 'other',
+    description: 'Other reason',
+  },
+]
+
+export const RETURN_METHODS = [
+  {
+    label: 'Drop-off at Store',
+    value: 'store_dropoff',
+    description: 'Return the item to any of our physical stores',
+  },
+  {
+    label: 'Mail Return',
+    value: 'mail',
+    description: 'Ship the item back using a provided return label',
+  },
+  {
+    label: 'Pickup Service',
+    value: 'pickup',
+    description: 'Schedule a pickup from your location (additional fees may apply)',
+  },
+]
+
+export const REFUND_TYPES = [
+  {
+    label: 'Full Refund',
+    value: 'full_refund',
+    description: 'Receive the full purchase amount back to original payment method',
+  },
+  {
+    label: 'Partial Refund',
+    value: 'partial_refund',
+    description: 'Receive a portion of the purchase amount (for damaged or used items)',
+  },
+  {
+    label: 'Store Credit',
+    value: 'store_credit',
+    description: 'Receive the refund amount as store credit for future purchases',
+  },
+  {
+    label: 'Replacement',
+    value: 'replacement',
+    description: 'Receive the same product as a replacement instead of a refund',
+  },
+]

@@ -92,6 +92,7 @@ export interface Config {
     'referral-analytics': ReferralAnalytic;
     'referral-rewards': ReferralReward;
     'invoice-templates': InvoiceTemplate;
+    returns: Return;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -128,6 +129,7 @@ export interface Config {
     'referral-analytics': ReferralAnalyticsSelect<false> | ReferralAnalyticsSelect<true>;
     'referral-rewards': ReferralRewardsSelect<false> | ReferralRewardsSelect<true>;
     'invoice-templates': InvoiceTemplatesSelect<false> | InvoiceTemplatesSelect<true>;
+    returns: ReturnsSelect<false> | ReturnsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1493,6 +1495,91 @@ export interface InvoiceTemplate {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "returns".
+ */
+export interface Return {
+  id: number;
+  /**
+   * Auto-generated return ID
+   */
+  returnId?: string | null;
+  /**
+   * The order associated with this return
+   */
+  order: number | Order;
+  user: number | User;
+  status: 'pending' | 'approved' | 'rejected' | 'received' | 'completed' | 'cancelled';
+  /**
+   * Date the return was requested
+   */
+  requestDate?: string | null;
+  /**
+   * Items being returned
+   */
+  items: {
+    product: number | Product;
+    quantity: number;
+    reason: 'damaged' | 'wrong_item' | 'not_as_described' | 'changed_mind' | 'sizing_issue' | 'other';
+    /**
+     * Additional details about the return reason
+     */
+    reasonDetails?: string | null;
+    condition?: ('new' | 'used' | 'damaged') | null;
+    id?: string | null;
+  }[];
+  returnMethod?: ('store_dropoff' | 'mail' | 'pickup') | null;
+  refundType?: ('full_refund' | 'partial_refund' | 'store_credit' | 'replacement' | 'no_refund') | null;
+  /**
+   * Amount to be refunded (if applicable)
+   */
+  refundAmount?: number | null;
+  /**
+   * Whether the refund has been processed
+   */
+  isRefundProcessed?: boolean | null;
+  /**
+   * Date the refund was processed
+   */
+  refundProcessedDate?: string | null;
+  /**
+   * Internal notes for administrators
+   */
+  adminNotes?: string | null;
+  customerMessages?:
+    | {
+        message: string;
+        sentBy: 'customer' | 'admin';
+        sentAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Tracking number or link to return shipping label
+   */
+  returnShippingLabel?: string | null;
+  /**
+   * The carrier handling the return shipment
+   */
+  returnShippingCarrier?: string | null;
+  /**
+   * Tracking number for the return shipment
+   */
+  returnTrackingNumber?: string | null;
+  /**
+   * Images of returned items or return receipts
+   */
+  returnReceiptImages?:
+    | {
+        image: number | Media;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1771,6 +1858,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'invoice-templates';
         value: number | InvoiceTemplate;
+      } | null)
+    | ({
+        relationTo: 'returns';
+        value: number | Return;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2612,6 +2703,53 @@ export interface InvoiceTemplatesSelect<T extends boolean = true> {
   description?: T;
   template?: T;
   isDefault?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "returns_select".
+ */
+export interface ReturnsSelect<T extends boolean = true> {
+  returnId?: T;
+  order?: T;
+  user?: T;
+  status?: T;
+  requestDate?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        reason?: T;
+        reasonDetails?: T;
+        condition?: T;
+        id?: T;
+      };
+  returnMethod?: T;
+  refundType?: T;
+  refundAmount?: T;
+  isRefundProcessed?: T;
+  refundProcessedDate?: T;
+  adminNotes?: T;
+  customerMessages?:
+    | T
+    | {
+        message?: T;
+        sentBy?: T;
+        sentAt?: T;
+        id?: T;
+      };
+  returnShippingLabel?: T;
+  returnShippingCarrier?: T;
+  returnTrackingNumber?: T;
+  returnReceiptImages?:
+    | T
+    | {
+        image?: T;
+        description?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

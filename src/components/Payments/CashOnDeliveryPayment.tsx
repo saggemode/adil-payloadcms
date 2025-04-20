@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { formatError } from '@/utilities/generateId'
 import { Order } from '@/payload-types'
+import useCartStore from '@/hooks/use-cart-store'
 
 interface CashOnDeliveryPaymentProps {
   order: Order
@@ -16,10 +17,13 @@ export default function CashOnDeliveryPayment({ order }: CashOnDeliveryPaymentPr
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const { clearCart } = useCartStore()
 
   const handleCodRedirect = () => {
     setIsLoading(true)
     try {
+      // Clear the cart before redirecting
+      clearCart()
       router.push(`/account/orders/${order.id.toString()}`)
     } catch (error) {
       toast({

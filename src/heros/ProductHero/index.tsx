@@ -18,15 +18,23 @@ import RatingSummary from '@/components/ProductArchive/rating-summary'
 import { useAuth } from '@/providers/Auth'
 import ReviewList from '@/components/ProductArchive/review-list'
 import { useEffect, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useStockNotifications } from '@/hooks/useStockNotifications'
+import { Share2, Clock, ShoppingCart, AlertTriangle } from 'lucide-react'
 
 
 export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
   const { id, categories, images, title } = product
   const [fullUrl, setFullUrl] = useState('')
-
+  const [stockLevel, setStockLevel] = useState(product.countInStock)
+  
   useEffect(() => {
     setFullUrl(window.location.href)
   }, [])
+
+  // Set up stock notifications for this product
+  useStockNotifications();
 
   const { user } = useAuth()
 
@@ -52,6 +60,23 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
     return 'Unknown Category'
   }
 
+  // Get stock level indicator
+  const getStockLevelIndicator = () => {
+    if (stockLevel <= 0) {
+      return { color: 'bg-red-500', width: '0%', text: 'Out of Stock', status: 'destructive' }
+    } else if (stockLevel <= 3) {
+      return { color: 'bg-red-500', width: '15%', text: `Only ${stockLevel} left!`, status: 'destructive' }
+    } else if (stockLevel <= 10) {
+      return { color: 'bg-yellow-500', width: '40%', text: 'Low Stock', status: 'warning' }
+    } else if (stockLevel <= 25) {
+      return { color: 'bg-green-400', width: '70%', text: 'In Stock', status: 'default' }
+    } else {
+      return { color: 'bg-green-600', width: '100%', text: 'In Stock', status: 'default' }
+    }
+  }
+
+  const stockIndicator = getStockLevelIndicator();
+
   return (
     <main>
       <div className="max-w-frame mx-auto px-4 xl:px-0">
@@ -59,7 +84,7 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
         <AddToBrowsingHistory id={String(id)} category={getCategoryTitle(categories)} />
         <BreadcrumbProduct title={product?.title ?? 'product'} />
         <section>
-          <div className="grid grid-cols-1 md:grid-cols-5  ">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8">
             <div className="col-span-2">
               <PhotoSection
                 images={
@@ -79,14 +104,15 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
               />
             </div>
 
-            <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
+            <div className="flex w-full flex-col gap-3 md:p-5 col-span-2">
               <div className="flex flex-col gap-3">
-                <p className="p-medium-16 rounded-full bg-grey-500/10   text-grey-500">
-                  <span>brand</span>
-                </p>
+                {product.brands && (
+                  <Badge variant="outline" className="w-fit px-3 py-1 text-sm bg-gray-50">
+                    {typeof product.brands === 'object' && 'title' in product.brands ? product.brands.title : ''}
+                  </Badge>
+                )}
                 <div className="flex items-center justify-between">
-                  <h1 className="font-bold text-lg lg:text-xl">{title}</h1>
-                 
+                  <h1 className="font-bold text-xl lg:text-2xl">{title}</h1>
                 </div>
                 <div className="flex items-center gap-2">
                   <RatingSummary
@@ -125,7 +151,22 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
                   }
                 />
               </div>
+              
+              {/* Stock level indicator */}
+              <div className="mt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">Stock Level</span>
+                  <Badge variant={stockIndicator.status as any}>
+                    {stockIndicator.text}
+                  </Badge>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className={`${stockIndicator.color} h-2 rounded-full transition-all duration-500`} style={{ width: stockIndicator.width }}></div>
+                </div>
+              </div>
+
               <Separator className="my-2" />
+
               <div className="flex flex-col gap-2">
                 <p className="p-bold-20 text-grey-600">Description:</p>
 
@@ -139,41 +180,60 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
               </div>
             </div>
             <div>
-              <Card>
-                <CardContent className="p-4 flex flex-col  gap-4">
+              <Card className="sticky top-4">
+                <CardContent className="p-4 flex flex-col gap-4">
                   <ProductPrice price={product.price} />
-                  {product.countInStock > 0 && product.countInStock <= 3 && (
-                    <div className="text-destructive font-bold">
-                      {`Only ${product.countInStock} left in stock - order soon`}
+                  
+                  {/* Enhanced stock status display */}
+                  <div className="rounded-lg bg-gray-50 p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      {stockLevel > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${stockLevel <= 3 ? 'bg-red-500' : 'bg-green-600'}`}></div>
+                          <span className={`font-semibold ${stockLevel <= 3 ? 'text-red-600' : 'text-green-700'}`}>
+                            {stockLevel <= 3 ? `Only ${stockLevel} left in stock` : 'In Stock'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                          <span className="font-semibold text-red-600">Out of Stock</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {product.countInStock !== 0 ? (
-                    <div className="text-green-700 text-xl">In Stock</div>
-                  ) : (
-                    <div className="text-destructive text-xl">Out of Stock</div>
-                  )}
-                  {product.countInStock !== 0 && (
+                    
+                    {stockLevel > 0 && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-1 text-sm text-gray-600">
+                            <Clock className="h-4 w-4" /> 
+                            <span>Order within 3 hours</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>For delivery by {new Date(Date.now() + 2*24*60*60*1000).toLocaleDateString()}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                  
+                  {stockLevel > 0 && (
                     <div className="flex justify-center items-center">
                       <AddToCart
                         item={{
                           clientId: generateId(),
                           product: product.id,
-
                           slug: String(product.slug),
-
                           category: getCategoryTitle(categories),
-
                           image:
                             product.images?.[0]?.image &&
                             typeof product.images[0]?.image !== 'number'
                               ? product.images[0].image.url || ''
                               : '',
-
-                          countInStock: product.countInStock,
+                          countInStock: stockLevel,
                           name: product.title,
                           price: round2(product.price),
                           quantity: 1,
-
                           size: selectedSize,
                           color: selectedColor,
                         }}
@@ -181,10 +241,13 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
                     </div>
                   )}
 
-                  <div>
-                    <h3>Share Product</h3>
+                  <div className="mt-4 border-t pt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Share2 className="h-5 w-5 text-gray-600" />
+                      <h3 className="font-semibold">Share Product</h3>
+                    </div>
                     <div className="flex justify-center mt-2">
-                      <QRCodeSVG value={fullUrl} size={200} />
+                      <QRCodeSVG value={fullUrl} size={180} />
                     </div>
                   </div>
                 </CardContent>
@@ -200,7 +263,6 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
           <ReviewList product={product} userId={user?.id} />
         </section>
 
-      
         <section>
           <BrowsingHistoryList className="mt-10" />
         </section>

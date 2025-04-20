@@ -1,4 +1,3 @@
-
 type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
 interface StockUpdate {
@@ -19,57 +18,89 @@ class WebSocketClient {
   private reconnectTimeout = 1000;
   private stockThreshold = 10; // Default low stock threshold
   private notificationCallback: NotificationCallback | null = null;
+  private isEnabled = true;
+  private isClient = false;
 
   constructor() {
-    this.connect();
+    // Check if we're in client-side environment
+    if (typeof window !== 'undefined') {
+      this.isClient = true;
+      // Delay connection to ensure it happens after hydration
+      setTimeout(() => this.connect(), 1000);
+    }
   }
 
   private connect() {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8081';
-    this.ws = new WebSocket(wsUrl);
+    if (!this.isClient || !this.isEnabled) return;
 
-    this.ws.onopen = () => {
-      console.log('WebSocket connected');
-      this.reconnectAttempts = 0;
-      this.subscribeToStockUpdates();
-    };
+    try {
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8081';
+      this.ws = new WebSocket(wsUrl);
 
-    this.ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      this.handleReconnect();
-    };
+      this.ws.onopen = () => {
+        console.log('WebSocket connected');
+        this.reconnectAttempts = 0;
+        this.subscribeToStockUpdates();
+      };
 
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    this.ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        if (message.type === 'stock_update') {
-          this.handleStockUpdate(message.data);
+      this.ws.onclose = () => {
+        if (this.isEnabled) {
+          console.log('WebSocket disconnected');
+          this.handleReconnect();
         }
-      } catch (error) {
-        console.error('Error processing message:', error);
-      }
-    };
+      };
+
+      this.ws.onerror = () => {
+        // Silent error handling - just disable further connection attempts
+        // after max reconnect attempts to prevent console flooding
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          this.isEnabled = false;
+        }
+      };
+
+      this.ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === 'stock_update') {
+            this.handleStockUpdate(message.data);
+          }
+        } catch (error) {
+          console.error('Error processing message:', error);
+        }
+      };
+    } catch (error) {
+      // Silent error handling for initialization errors
+      this.isEnabled = false;
+    }
   }
 
   private handleReconnect() {
+    if (!this.isEnabled) return;
+
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       setTimeout(() => {
-        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        this.connect();
+        if (this.isEnabled) {
+          console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+          this.connect();
+        }
       }, this.reconnectTimeout * this.reconnectAttempts);
+    } else {
+      // Disable WebSocket after max reconnection attempts
+      this.isEnabled = false;
+      console.log('Max reconnection attempts reached. WebSocket disabled.');
     }
   }
 
   private subscribeToStockUpdates() {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({
-        type: 'subscribe_stock'
-      }));
+      try {
+        this.ws.send(JSON.stringify({
+          type: 'subscribe_stock'
+        }));
+      } catch (error) {
+        // Silent error handling
+      }
     }
   }
 
@@ -107,6 +138,15 @@ class WebSocketClient {
 
   public setNotificationCallback(callback: NotificationCallback | null) {
     this.notificationCallback = callback;
+  }
+
+  // Enable WebSocket connection (for reconnecting after it was disabled)
+  public enable() {
+    if (!this.isEnabled) {
+      this.isEnabled = true;
+      this.reconnectAttempts = 0;
+      this.connect();
+    }
   }
 }
 

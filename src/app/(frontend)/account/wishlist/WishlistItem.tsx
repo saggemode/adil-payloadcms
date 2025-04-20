@@ -42,9 +42,17 @@ export default function WishlistItem({ product }: WishlistItemProps) {
   }
 
   const getImageUrl = (): string => {
-    if (!product?.images?.[0]?.image) return '/placeholder.jpg';
+    if (!product?.images?.length || !product.images[0]?.image) {
+      console.log('No product image found:', product?.id, product?.title);
+      return '/placeholder.jpg';
+    }
     
     const image = product.images[0].image;
+    
+    // Log the image data for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Product image data:', product.id, product.title, image);
+    }
     
     // If image is a Media object
     if (typeof image === 'object' && image !== null) {
@@ -65,9 +73,10 @@ export default function WishlistItem({ product }: WishlistItemProps) {
       return image;
     }
     
-    // Debug info - log what we're seeing
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Product image data:', image);
+    // If image is a number (ID reference)
+    if (typeof image === 'number') {
+      console.log('Image is a number ID, not populated:', image);
+      return '/placeholder.jpg';
     }
     
     return '/placeholder.jpg';

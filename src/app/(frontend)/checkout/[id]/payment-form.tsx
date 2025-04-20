@@ -20,7 +20,7 @@ import ProductPrice from '@/components/ProductArchive/Price'
 import { formatDateTime2 } from '@/utilities/generateId'
 
 import { Order } from '@/payload-types'
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNotifications } from '@/contexts/NotificationContext'
 
 export default function OrderPaymentForm({
@@ -49,6 +49,37 @@ export default function OrderPaymentForm({
     isPaid,
   } = order
   const { toast } = useToast()
+  
+  // Ensure we have a valid Stripe publishable key before initializing
+  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  
+  // Debug information
+  useEffect(() => {
+    if (paymentMethod === 'Stripe' && !isPaid) {
+      console.log("Stripe Payment Info:", {
+        hasPublishableKey: !!stripePublishableKey,
+        hasClientSecret: !!clientSecret,
+        orderId: order.id,
+        paymentMethod
+      });
+    }
+  }, [paymentMethod, isPaid, clientSecret, stripePublishableKey, order.id]);
+  
+  // Create a memo-ized Stripe promise to prevent unnecessary re-renders
+  const stripePromise = useMemo(() => {
+    if (!stripePublishableKey) return null;
+    
+    console.log("Initializing Stripe with publishable key");
+    return loadStripe(stripePublishableKey);
+  }, [stripePublishableKey]);
+    
+  if (!stripePublishableKey && paymentMethod === 'Stripe' && !isPaid) {
+    console.error('Missing Stripe publishable key');
+    addNotification({
+      type: 'error',
+      message: 'Payment configuration error. Please contact support.'
+    });
+  }
 
   if (isPaid) {
     addNotification({
@@ -213,18 +244,33 @@ export default function OrderPaymentForm({
                 </PayPalScriptProvider>
               </div>
             )}
-            {!isPaid && paymentMethod === 'Stripe' && clientSecret && (
-              <Elements
-                options={{
-                  clientSecret,
-                }}
-                stripe={stripePromise}
-              >
-                <StripeForm
-                  priceInCents={Math.round(order.totalPrice * 100)}
-                  orderId={order.id.toString()}
-                />
-              </Elements>
+            {!isPaid && paymentMethod === 'Stripe' && clientSecret && stripePromise && (
+              <div className="stripe-wrapper">
+                <Elements
+                  options={{
+                    clientSecret,
+                    appearance: {
+                      theme: 'stripe',
+                      labels: 'floating',
+                    },
+                    loader: 'auto',
+                  }}
+                  stripe={stripePromise}
+                  key={`stripe-elements-${clientSecret}-${Date.now()}`}
+                >
+                  <StripeForm
+                    priceInCents={Math.round(order.totalPrice * 100)}
+                    orderId={order.id.toString()}
+                  />
+                </Elements>
+              </div>
+            )}
+
+            {!isPaid && paymentMethod === 'Stripe' && (!clientSecret || !stripePromise) && (
+              <div className="p-4 text-center">
+                <div className="animate-spin border-2 border-primary border-t-transparent rounded-full w-6 h-6 mx-auto mb-2"></div>
+                <div>Loading payment system...</div>
+              </div>
             )}
 
             {!isPaid && paymentMethod === 'Cash On Delivery' && (
@@ -248,8 +294,6 @@ export default function OrderPaymentForm({
       </CardContent>
     </Card>
   )
-
-  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
 
   return (
     <main className="max-w-6xl mx-auto">

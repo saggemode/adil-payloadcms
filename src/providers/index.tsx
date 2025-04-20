@@ -8,7 +8,7 @@ import ClientProviders from './ClientProvider/client-providers'
 import QueryProvider from './QueryProvider/QueryProvider'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { CompareProvider } from '@/contexts/CompareContext'
-//import { NotificationCenter } from '@/components/notifications/NotificationCenter'
+
 
 export const Providers: React.FC<{
   children: React.ReactNode
@@ -22,8 +22,10 @@ export const Providers: React.FC<{
               <ClientProviders>
                 <NotificationProvider>
                   <CompareProvider>
-                    {children}
-                    {/* <NotificationCenter /> */}
+                   
+                      {children}
+                      {/* <NotificationCenter /> */}
+                   
                   </CompareProvider>
                 </NotificationProvider>
               </ClientProviders>
