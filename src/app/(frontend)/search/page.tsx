@@ -2,9 +2,7 @@ import { Metadata } from 'next'
 
 import ProductSearch from '@/components/ProductSearch'
 import ProductGrid from '@/components/ProductArchive/ProductGrid'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { Product } from '@/payload-types'
+
 import { getFilteredProducts } from '@/actions/productAction'
 import { ProductsPagination } from '@/components/Pagination/ProductPagination'
 

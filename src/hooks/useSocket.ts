@@ -4,7 +4,7 @@ import { io, Socket } from 'socket.io-client';
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'https://your-socketio-server.com';
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8081';
 
   useEffect(() => {
     // Socket.IO with serverless functions on Vercel requires external WebSocket server
@@ -12,7 +12,7 @@ export const useSocket = () => {
       try {
         // Connect to external WebSocket server instead of Next.js API route
         socketRef.current = io(wsUrl, {
-          transports: ['websocket', 'polling'],
+          transports: ['websocket'],
           reconnectionAttempts: 5,
           reconnectionDelay: 1000,
         });
@@ -77,4 +77,4 @@ export const useSocket = () => {
     subscribeToEvent,
     unsubscribeFromEvent,
   };
-}; 
+};

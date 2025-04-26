@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useCompare } from '@/contexts/CompareContext'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Trash2, X } from 'lucide-react'
@@ -11,7 +11,7 @@ import AddToCart from '@/components/ProductArchive/add-to-cart'
 import { generateId, round2 } from '@/utilities/generateId'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 import { CardProduct } from '@/components/ProductArchive/ProductCard'
 
 // Define an interface for the attribute formatter functions
@@ -28,22 +28,88 @@ interface ColorOrSizeObject {
 }
 
 // Define spec categories and their attributes for comparison
-const comparisonCategories = [
+const comparisonCategories: Array<{
+  title: string;
+  attributes: ProductAttribute[];
+}> = [
   {
     title: 'Basic Info',
     attributes: [
-      { key: 'price', label: 'Price', formatter: (val: number) => `$${val.toFixed(2)}` },
-      { key: 'avgRating', label: 'Rating', formatter: (val: number) => val.toFixed(1) },
-      { key: 'countInStock', label: 'In Stock', formatter: (val: number) => (val > 0 ? 'Yes' : 'No') },
+      { key: 'price', label: 'Price', formatter: (val: unknown) => typeof val === 'number' ? `$${val.toFixed(2)}` : 'N/A' },
+      { key: 'avgRating', label: 'Rating', formatter: (val: unknown) => typeof val === 'number' ? val.toFixed(1) : 'N/A' },
+      { key: 'numReviews', label: 'Review Count', formatter: (val: unknown) => typeof val === 'number' ? val.toString() : '0' },
+      { key: 'countInStock', label: 'Availability', formatter: (val: unknown) => typeof val === 'number' ? (val > 0 ? `In Stock (${val})` : 'Out of Stock') : 'N/A' },
     ],
   },
   {
-    title: 'Specifications',
+    title: 'Product Details',
     attributes: [
-      { key: 'colors', label: 'Colors', formatter: (val: unknown[]) => Array.isArray(val) ? val.map((c) => typeof c === 'object' ? (c as ColorOrSizeObject).title : c).join(', ') : '' },
-      { key: 'sizes', label: 'Sizes', formatter: (val: unknown[]) => Array.isArray(val) ? val.map((s) => typeof s === 'object' ? (s as ColorOrSizeObject).title : s).join(', ') : '' },
+      { 
+        key: 'brands', 
+        label: 'Brand', 
+        formatter: (val: unknown) => {
+          if (!Array.isArray(val)) return 'N/A'
+          return val
+            .filter(b => b !== null)
+            .map(b => typeof b === 'object' && b && 'title' in b ? b.title : b)
+            .join(', ') || 'N/A'
+        }
+      },
+      { 
+        key: 'colors', 
+        label: 'Available Colors', 
+        formatter: (val: unknown) => {
+          if (!Array.isArray(val)) return 'N/A'
+          return val
+            .filter(c => c !== null)
+            .map(c => typeof c === 'object' && c ? (c as ColorOrSizeObject).title : c)
+            .join(', ') || 'N/A'
+        }
+      },
+      { 
+        key: 'sizes', 
+        label: 'Available Sizes', 
+        formatter: (val: unknown) => {
+          if (!Array.isArray(val)) return 'N/A'
+          return val
+            .filter(s => s !== null)
+            .map(s => typeof s === 'object' && s ? (s as ColorOrSizeObject).title : s)
+            .join(', ') || 'N/A'
+        }
+      },
+      { 
+        key: 'categories', 
+        label: 'Category', 
+        formatter: (val: unknown) => {
+          if (!Array.isArray(val)) return 'N/A'
+          return val
+            .filter(c => c !== null)
+            .map(c => typeof c === 'object' && c && 'title' in c ? c.title : c)
+            .join(', ') || 'N/A'
+        }
+      },
     ],
   },
+  {
+    title: 'Sales & Promotions',
+    attributes: [
+      { 
+        key: 'listPrice', 
+        label: 'Original Price', 
+        formatter: (val: unknown) => typeof val === 'number' ? `$${val.toFixed(2)}` : 'N/A'
+      },
+      { 
+        key: 'isFeatured', 
+        label: 'Featured Product', 
+        formatter: (val: unknown) => val === true ? 'Yes' : 'No'
+      },
+      {
+        key: 'flashSaleDiscount',
+        label: 'Flash Sale Discount',
+        formatter: (val: unknown) => typeof val === 'number' ? `${val}% Off` : 'No active sale'
+      }
+    ]
+  }
 ]
 
 const getProductAttribute = (product: CardProduct, key: string) => {
@@ -54,7 +120,7 @@ const getProductAttribute = (product: CardProduct, key: string) => {
   
   // Find the formatter for this attribute
   const attribute = comparisonCategories
-    .flatMap(category => category.attributes as ProductAttribute[])
+    .flatMap(category => category.attributes)
     .find(attr => attr.key === key)
   
   if (attribute?.formatter && typeof attribute.formatter === 'function') {
@@ -72,17 +138,35 @@ const getProductAttribute = (product: CardProduct, key: string) => {
   return String(value)
 }
 
+const getCategoryTitle = (categories: unknown) => {
+  if (categories && Array.isArray(categories) && categories.length > 0) {
+    return typeof categories[0] === 'object' && 'title' in categories[0]
+      ? categories[0].title
+      : 'Unknown'
+  }
+  return 'Unknown'
+}
+
 const ComparePage: React.FC = () => {
   const { comparedProducts, removeProductFromCompare, clearComparedProducts } = useCompare()
   const router = useRouter()
-  
-  // Redirect to products page if there are no compared products
+  const [highlightDifferences, setHighlightDifferences] = useState(false)
+
   useEffect(() => {
     if (comparedProducts.length === 0) {
       router.push('/products')
     }
   }, [comparedProducts, router])
-  
+
+  const getDifferenceHighlight = (attribute: ProductAttribute, products: CardProduct[]) => {
+    if (!highlightDifferences) return ''
+    
+    const values = products.map(p => getProductAttribute(p, attribute.key))
+    const allSame = values.every(v => v === values[0])
+    
+    return allSame ? '' : 'bg-yellow-50 dark:bg-yellow-900/20'
+  }
+
   if (comparedProducts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -96,38 +180,51 @@ const ComparePage: React.FC = () => {
   
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={() => router.push('/products')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Products
-        </Button>
-        <Button 
-          variant="outline" 
-          className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={() => clearComparedProducts()}
-        >
-          <Trash2 className="h-4 w-4" /> Clear All
-        </Button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <Button variant="outline" onClick={() => router.push('/products')}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Products
+          </Button>
+          <Button 
+            variant="outline" 
+            className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => clearComparedProducts()}
+          >
+            <Trash2 className="h-4 w-4" /> Clear All
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium cursor-pointer">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={highlightDifferences}
+              onChange={(e) => setHighlightDifferences(e.target.checked)}
+            />
+            Highlight Differences
+          </label>
+        </div>
       </div>
       
-      <ScrollArea className="w-full">
-        <div className="min-w-[800px]">
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[280px]">
           {/* Product Headers */}
-          <div className="grid grid-cols-[200px_repeat(auto-fill,minmax(200px,1fr))] gap-4">
-            <div className="p-4"></div>
+          <div className="grid grid-cols-2 gap-4 mb-8">
             {comparedProducts.map((product, index) => (
-              <div key={index} className="p-4 relative border rounded-lg bg-background">
+              <div key={index} className="p-4 relative border rounded-lg bg-background hover:shadow-md transition-shadow duration-200">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 h-6 w-6"
+                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => removeProductFromCompare(product.id?.toString() || '')}
                   aria-label="Remove product"
                 >
                   <X className="h-3 w-3" />
                 </Button>
                 
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-32 h-32 relative mb-4">
+                <div className="flex flex-col items-center text-center group">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 relative mb-4">
                     {product.images && product.images[0]?.image && (
                       <Image
                         src={
@@ -156,7 +253,7 @@ const ComparePage: React.FC = () => {
                     </span>
                   </div>
                   
-                  <div className="font-semibold text-lg mb-4">
+                  <div className="font-semibold text-base sm:text-lg mb-4">
                     ${(product.price || 0).toFixed(2)}
                     {product.listPrice && product.listPrice > (product.price || 0) && (
                       <span className="line-through text-gray-400 text-sm ml-2">
@@ -171,11 +268,7 @@ const ComparePage: React.FC = () => {
                       clientId: generateId(),
                       product: product.id || 0,
                       slug: String(product.slug),
-                      category: product.categories && Array.isArray(product.categories) && product.categories.length > 0
-                        ? (typeof product.categories[0] === 'object' && 'title' in product.categories[0]
-                          ? product.categories[0].title
-                          : 'Unknown')
-                        : 'Unknown',
+                      category: getCategoryTitle(product.categories),
                       image:
                         product.images?.[0]?.image && typeof product.images[0]?.image !== 'number'
                           ? product.images[0].image.url || ''
@@ -206,20 +299,32 @@ const ComparePage: React.FC = () => {
           {/* Comparison Categories */}
           {comparisonCategories.map((category, categoryIndex) => (
             <div key={categoryIndex} className="mb-8">
-              <h2 className="font-semibold text-lg mb-4">{category.title}</h2>
+              <h2 className="font-semibold text-lg mb-4 text-primary">{category.title}</h2>
               
               {category.attributes.map((attribute, attrIndex) => (
                 <div 
                   key={attrIndex} 
-                  className={`grid grid-cols-[200px_repeat(auto-fill,minmax(200px,1fr))] gap-4 ${
+                  className={`grid grid-cols-[1fr_1fr] sm:grid-cols-[120px_1fr_1fr] gap-2 sm:gap-4 ${
                     attrIndex % 2 === 0 ? 'bg-muted/50' : ''
-                  }`}
+                  } p-2 sm:p-4`}
                 >
-                  <div className="p-4 font-medium">{attribute.label}</div>
+                  <div className="hidden sm:block font-medium text-muted-foreground">
+                    {attribute.label}
+                  </div>
                   
                   {comparedProducts.map((product, productIndex) => (
-                    <div key={productIndex} className="p-4">
-                      {getProductAttribute(product, attribute.key)}
+                    <div 
+                      key={productIndex} 
+                      className={`p-2 sm:p-4 transition-colors duration-200 ${
+                        getDifferenceHighlight(attribute, comparedProducts)
+                      }`}
+                    >
+                      <div className="sm:hidden text-sm text-muted-foreground mb-1">
+                        {attribute.label}
+                      </div>
+                      <div className="text-sm sm:text-base">
+                        {getProductAttribute(product, attribute.key)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -227,9 +332,9 @@ const ComparePage: React.FC = () => {
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }
 
-export default ComparePage 
+export default ComparePage

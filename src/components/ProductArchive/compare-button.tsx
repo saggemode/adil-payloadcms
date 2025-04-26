@@ -14,7 +14,7 @@ interface CompareButtonProps {
 const CompareButton: React.FC<CompareButtonProps> = ({ product }) => {
   const { addProductToCompare, isInCompare, comparedProducts } = useCompare()
   const isInCompareList = product.id ? isInCompare(product.id.toString()) : false
-  const isCompareListFull = comparedProducts.length >= 4
+  const isCompareListFull = comparedProducts.length >= 2
 
   return (
     <TooltipProvider>
@@ -45,7 +45,7 @@ const CompareButton: React.FC<CompareButtonProps> = ({ product }) => {
           {isInCompareList 
             ? 'Added to compare' 
             : isCompareListFull 
-              ? 'Compare list is full (max 4 products)' 
+              ? 'Compare list is full (max 2 products)' 
               : 'Add to compare'}
         </TooltipContent>
       </Tooltip>
@@ -53,4 +53,4 @@ const CompareButton: React.FC<CompareButtonProps> = ({ product }) => {
   )
 }
 
-export default CompareButton 
+export default CompareButton

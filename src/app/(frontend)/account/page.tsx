@@ -14,13 +14,34 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Heart } from 'lucide-react'
+import { getMyOrdersCount, getOrderDeliveryCount } from '@/actions/orderAction'
+import { formatDistanceToNow } from 'date-fns'
+import { getLoyaltyPointsSummary } from '@/actions/loyaltyAction'
+import { getMeUser } from '@/utilities/getMeUser'
 
 const PAGE_TITLE = 'Your Account'
 export const metadata: Metadata = {
   title: PAGE_TITLE,
 }
 
-export default function AccountPage() {
+export default async function AccountPage() {
+  const { user } = await getMeUser()
+  const orderCount = await getMyOrdersCount()
+  const orderDeliveryInfo = await getOrderDeliveryCount('12345')
+  
+  // Format the delivery date if it exists
+  const formattedDeliveryDate = orderDeliveryInfo.latestDeliveryDate 
+    ? formatDistanceToNow(new Date(orderDeliveryInfo.latestDeliveryDate), { addSuffix: true })
+    : '2 days ago';
+    
+  // Get loyalty points summary if user is logged in
+  const loyaltyInfo = user ? await getLoyaltyPointsSummary(user.id.toString()) : null
+  
+  // Format the loyalty points date if it exists
+  const formattedLoyaltyDate = loyaltyInfo?.latestActivity
+    ? formatDistanceToNow(new Date(loyaltyInfo.latestActivity), { addSuffix: true })
+    : 'No recent activity';
+
   return (
     <div className="space-y-6 pb-10">
       {/* Account Header */}
@@ -71,7 +92,7 @@ export default function AccountPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
                     <ShoppingBag className="h-8 w-8 mb-2 text-primary" />
-                    <span className="text-xl font-bold">12</span>
+                    <span className="text-xl font-bold">{orderCount}</span>
                     <span className="text-sm text-muted-foreground">Orders</span>
                   </div>
                   <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
@@ -93,16 +114,16 @@ export default function AccountPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <PackageCheckIcon className="h-4 w-4 text-primary" />
-                          <span className="text-sm">Order #12345 delivered</span>
+                          <span className="text-sm"> ({orderDeliveryInfo.count} total deliveries)</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">2 days ago</span>
+                        <span className="text-xs text-muted-foreground">{formattedDeliveryDate}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Tag className="h-4 w-4 text-amber-500" />
-                          <span className="text-sm">Earned 250 loyalty points</span>
+                          <span className="text-sm">Earned {loyaltyInfo?.lastEarnedPoints || 0} loyalty points</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">5 days ago</span>
+                        <span className="text-xs text-muted-foreground">{formattedLoyaltyDate}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">

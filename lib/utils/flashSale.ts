@@ -8,6 +8,9 @@ export interface FlashSaleProduct {
     flashSaleStock: number
   }
   price: number
+  images?: { url: string }[]
+  soldCount?: number
+  rating?: number
 }
 
 export const isInFlashSale = (product: FlashSaleProduct): boolean => {

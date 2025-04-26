@@ -4,12 +4,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { toast } from '@/hooks/use-toast';
 
+export type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
-interface Notification {
+export interface Notification {
   id: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: NotificationType;
   message: string;
   timestamp: Date;
+  read?: boolean;
 }
 
 interface NotificationContextType {
@@ -17,6 +19,7 @@ interface NotificationContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
   removeNotification: (id: string) => void;
   clearNotifications: () => void;
+  markAllAsRead: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -31,16 +34,45 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       addNotification({
         type: data.type,
         message: data.message,
+        read: false,
       });
     });
   }, []);
 
-  const addNotification = ({ type, message }: Omit<Notification, 'id' | 'timestamp'>) => {
+  // Store notifications in localStorage to persist between sessions
+  useEffect(() => {
+    try {
+      if (notifications.length > 0) {
+        localStorage.setItem('notifications', JSON.stringify(notifications));
+      }
+    } catch (error) {
+      console.error('Failed to save notifications to localStorage:', error);
+    }
+  }, [notifications]);
+
+  // Load notifications from localStorage on initial load
+  useEffect(() => {
+    try {
+      const savedNotifications = localStorage.getItem('notifications');
+      if (savedNotifications) {
+        const parsed = JSON.parse(savedNotifications);
+        setNotifications(parsed.map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp)
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to load notifications from localStorage:', error);
+    }
+  }, []);
+
+  const addNotification = ({ type, message, read = false }: Omit<Notification, 'id' | 'timestamp'>) => {
     const newNotification: Notification = {
       id: Math.random().toString(36).substr(2, 9),
       type,
       message,
       timestamp: new Date(),
+      read,
     };
 
     setNotifications((prev) => [...prev, newNotification]);
@@ -58,6 +90,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const clearNotifications = () => {
     setNotifications([]);
+    try {
+      localStorage.removeItem('notifications');
+    } catch (error) {
+      console.error('Failed to clear notifications from localStorage:', error);
+    }
+  };
+
+  const markAllAsRead = () => {
+    setNotifications((prev) => 
+      prev.map(notification => ({ ...notification, read: true }))
+    );
   };
 
   return (
@@ -67,6 +110,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         addNotification,
         removeNotification,
         clearNotifications,
+        markAllAsRead,
       }}
     >
       {children}

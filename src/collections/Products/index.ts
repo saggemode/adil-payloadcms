@@ -15,6 +15,9 @@ import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { revalidateDelete, revalidateProduct } from './hooks/revalidateProducts'
 //import { monitorStock } from './hooks/monitorStock'
+import { generateBarcode } from './hooks/generateBarcode'
+// We'll use a simpler approach without a custom hook for now
+// import { validateBarcode } from './hooks/validateBarcode'
 
 import {
   MetaDescriptionField,
@@ -25,6 +28,8 @@ import {
 } from '@payloadcms/plugin-seo/fields'
 import { slugField } from '@/fields/slug'
 import { admins } from '@/access/admins'
+
+// Import custom component
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -45,7 +50,7 @@ export const Products: CollectionConfig = {
     },
   },
   admin: {
-    defaultColumns: ['title', 'price', 'stock', 'brands', 'isPublished'],
+    defaultColumns: ['title', 'price', 'stock', 'brands', 'isPublished', 'barcode'],
     livePreview: {
       url: ({ data, req }) => {
         const path = generatePreviewPath({
@@ -78,7 +83,20 @@ export const Products: CollectionConfig = {
       unique: true,
       admin: {
         description: 'Product barcode (ISBN, UPC, EAN, etc.)',
+        position: 'sidebar',
       },
+      validate: (value: any) => {
+        if (!value) return true;
+        
+        // Basic format checking
+        const hasOnlyValidChars = /^[0-9-]+$/.test(String(value));
+        if (!hasOnlyValidChars) {
+          return 'Barcode should contain only numbers and hyphens';
+        }
+        
+        return true;
+      },
+      index: true, // Make it searchable in the database
     },
     {
       name: 'price',
@@ -336,6 +354,7 @@ export const Products: CollectionConfig = {
   hooks: {
     beforeChange: [
       //monitorStock
+      generateBarcode
     ],
     afterChange: [
       revalidateProduct

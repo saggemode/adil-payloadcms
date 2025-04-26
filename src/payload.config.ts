@@ -39,6 +39,10 @@ import ReferralAnalytics from './collections/ReferralAnalytics'
 import ReferralRewards from './collections/ReferralRewards'
 import { Returns } from './collections/Returns'
 
+// Import our barcode lookup endpoint
+import { barcodeLookup } from './endpoints/api/barcode-lookup'
+import { generateBarcodes } from './endpoints/api/generate-barcodes'
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -96,6 +100,11 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
+
+  endpoints: [
+    barcodeLookup,
+    generateBarcodes,
+  ],
 
   // db: sqliteAdapter({
   //   client: {

@@ -30,7 +30,7 @@ const CompareBar: React.FC = () => {
         <div className="flex items-center gap-2">
           <Scale className="h-5 w-5 text-primary" />
           <h3 className="font-semibold">
-            Compare Products ({comparedProducts.length}/4)
+            Compare Products ({comparedProducts.length}/2)
           </h3>
         </div>
         <div className="flex items-center gap-2">
@@ -87,8 +87,8 @@ const CompareBar: React.FC = () => {
       {/* Product cards */}
       {isOpen && (
         <div className="p-4 pt-0">
-          <div className="flex justify-between mb-4">
-            <span className="text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-between mb-4">
+            <span className="text-sm text-gray-500 mb-2 sm:mb-0">
               {comparedProducts.length < 2
                 ? 'Select at least 2 products to compare'
                 : 'Ready to compare!'}
@@ -96,20 +96,20 @@ const CompareBar: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 w-full sm:w-auto"
               onClick={() => clearComparedProducts()}
             >
               <Trash2 className="h-4 w-4" /> Clear All
             </Button>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, index) => {
+          <div className="grid grid-cols-2 gap-4">
+            {Array.from({ length: 2 }).map((_, index) => {
               const product = comparedProducts[index]
               return (
                 <div
                   key={index}
-                  className="relative border rounded-lg p-2 h-[150px] bg-gray-50 dark:bg-gray-800 flex flex-col items-center justify-center"
+                  className="relative border rounded-lg p-2 h-[120px] sm:h-[150px] bg-gray-50 dark:bg-gray-800 flex flex-col items-center justify-center"
                 >
                   {product ? (
                     <>
@@ -122,7 +122,7 @@ const CompareBar: React.FC = () => {
                       >
                         <X className="h-3 w-3" />
                       </Button>
-                      <div className="w-20 h-20 relative mb-2">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 relative mb-2">
                         {product.images && product.images[0]?.image && (
                           <Image
                             src={
@@ -142,8 +142,8 @@ const CompareBar: React.FC = () => {
                     </>
                   ) : (
                     <div className="text-gray-400 text-xs text-center">
-                      <div className="rounded-full w-12 h-12 bg-gray-200 dark:bg-gray-700 mx-auto mb-2 flex items-center justify-center">
-                        <span className="text-xl">+</span>
+                      <div className="rounded-full w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 dark:bg-gray-700 mx-auto mb-2 flex items-center justify-center">
+                        <span className="text-lg sm:text-xl">+</span>
                       </div>
                       Add product
                     </div>
@@ -158,4 +158,4 @@ const CompareBar: React.FC = () => {
   )
 }
 
-export default CompareBar 
+export default CompareBar

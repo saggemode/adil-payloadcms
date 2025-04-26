@@ -69,7 +69,7 @@ export default function Sidebar({ categories }: SidebarProps) {
                 <DrawerClose asChild key={category.id}>
                   <Link
                     href={`/products?category=${category.title}`}
-                    className={`flex items-center justify-between item-button`}
+                    className="flex items-center justify-between p-4 hover:bg-muted transition-colors"
                   >
                     <span>{category.title}</span>
                     <ChevronRight className="h-4 w-4" />
@@ -85,28 +85,28 @@ export default function Sidebar({ categories }: SidebarProps) {
               <h2 className="text-lg font-semibold">Help & Settings</h2>
             </div>
             <DrawerClose asChild>
-              <Link href="/account" className="item-button">
+              <Link href="/account" className="p-4 hover:bg-muted transition-colors flex items-center">
                 Your account
               </Link>
             </DrawerClose>
             <DrawerClose asChild>
-              <Link href="/account/wishlist" className="item-button">
+              <Link href="/account/wishlist" className="p-4 hover:bg-muted transition-colors flex items-center">
                 Your wishlist
               </Link>
             </DrawerClose>
             <DrawerClose asChild>
-              <Link href="/page/customer-service" className="item-button">
+              <Link href="/page/customer-service" className="p-4 hover:bg-muted transition-colors flex items-center">
                 Customer Service
               </Link>
             </DrawerClose>
             {user ? (
               <form action={'SignOut'} className="w-full">
-                <Button className="w-full justify-start item-button text-base" variant="ghost">
+                <Button className="w-full justify-start p-4 text-base font-normal h-auto" variant="ghost">
                   Sign out
                 </Button>
               </form>
             ) : (
-              <Link href="/sign-in" className="item-button">
+              <Link href="/sign-in" className="p-4 hover:bg-muted transition-colors flex items-center">
                 Sign in
               </Link>
             )}

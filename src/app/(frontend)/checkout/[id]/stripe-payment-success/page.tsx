@@ -1,8 +1,8 @@
-import Link from 'next/link'
+
 import { notFound, redirect } from 'next/navigation'
 import Stripe from 'stripe'
 
-import { Button } from '@/components/ui/button'
+
 import { getOrderById } from '@/actions/orderAction'
 import { updateInventoryAfterPurchase } from '@/actions/updateInventory'
 import ReferralCompletionHandler from '@/components/referral/ReferralCompletionHandler'

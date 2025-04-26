@@ -41,8 +41,8 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addProductToCompare = useCallback((product: CardProduct) => {
     setComparedProducts((currentProducts) => {
-      // Only allow maximum 4 products for comparison
-      if (currentProducts.length >= 4) {
+      // Only allow maximum 2 products for comparison
+      if (currentProducts.length >= 2) {
         return currentProducts
       }
       
@@ -88,4 +88,4 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
   )
 }
 
-export const useCompare = () => useContext(CompareContext) 
+export const useCompare = () => useContext(CompareContext)

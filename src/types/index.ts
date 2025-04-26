@@ -6,6 +6,7 @@ import {
   ReviewInputSchema,
 } from '@/types/validator'
 import { z } from 'zod'
+import { LucideIcon } from 'lucide-react'
 
 export type OrderItem = z.infer<typeof OrderItemSchema>
 export type Cart = z.infer<typeof CartSchema>
@@ -28,18 +29,17 @@ export type IReviewDetails = {
   updatedAt: string
   createdAt: string
 }
+
+export type MenuItem = {
+  name: string
+  href: string
+  icon?: LucideIcon
+  description?: string
+  children?: MenuItem[]
+}
+
 export type Data = {
-  headerMenus: {
-    name: string
-    href: string
-  }[]
-  carousels: {
-    image: string
-    url: string
-    title: string
-    buttonCaption: string
-    isPublished: boolean
-  }[]
+  headerMenus: MenuItem[]
 }
 
 export type Product = {

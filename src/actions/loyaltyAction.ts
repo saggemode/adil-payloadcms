@@ -500,4 +500,63 @@ export async function redeemPoints(customerId: string, rewardId: string, pointsC
     console.error('Error redeeming points:', error)
     return null
   }
+}
+
+// Get loyalty points summary for use in account dashboard
+export async function getLoyaltyPointsSummary(customerId: string) {
+  const payload = await getPayload({ config: configPromise })
+  
+  try {
+    // Ensure customerId is properly formatted as a string
+    const formattedCustomerId = String(customerId).trim()
+    
+    const loyaltyPoints = await payload.find({
+      collection: 'loyalty-points',
+      where: {
+        customerId: {
+          equals: formattedCustomerId,
+        },
+      },
+    })
+    
+    const pointsData = loyaltyPoints.docs[0]
+    
+    if (!pointsData) {
+      return {
+        points: 0,
+        tier: 'bronze' as const,
+        latestActivity: null,
+        lastEarnedPoints: 0
+      }
+    }
+
+    // Get the most recent activity from pointsHistory
+    const history = pointsData.pointsHistory || []
+    const sortedHistory = [...history].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return dateB - dateA
+    })
+
+    const latestActivity = sortedHistory.length > 0 ? sortedHistory[0]?.createdAt : null
+    
+    // Find the most recent earned points entry
+    const lastEarnedEntry = sortedHistory.find(entry => entry.type === 'earned' && entry.points > 0)
+    const lastEarnedPoints = lastEarnedEntry?.points || 0
+
+    return {
+      points: pointsData.points || 0,
+      tier: pointsData.tier || 'bronze',
+      latestActivity,
+      lastEarnedPoints
+    }
+  } catch (error) {
+    console.error('Error fetching loyalty points summary:', error)
+    return {
+      points: 0,
+      tier: 'bronze' as const,
+      latestActivity: null,
+      lastEarnedPoints: 0
+    }
+  }
 } 
