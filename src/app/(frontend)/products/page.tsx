@@ -3,20 +3,11 @@ import type { Metadata } from 'next/types'
 import React from 'react'
 import PageClient from './page.client'
 import { ProductArchive } from '@/components/ProductArchive'
-import {
-  getAllCategories,
-  getAllSizes,
-  getAllColors,
-  getAllTagExtra,
-} from '@/actions/productAction'
-
-import MobileFilters from '@/components/MobileFilters'
-import BreadcrumbProduct from '@/heros/ProductHero/components/BreadcrumbProduct'
 import { Separator } from '@/components/ui/separator'
-
+import BreadcrumbProduct from '@/heros/ProductHero/components/BreadcrumbProduct'
 import { ProductPageRange } from '@/components/PageRange/ProductsPageRange'
 import { ProductsPagination } from '@/components/Pagination/ProductPagination'
-import ProductFilter from '@/components/ProductFilter'
+import AdvancedProductFilter from '@/components/AdvancedProductFilter'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
@@ -28,12 +19,14 @@ interface SearchParams {
   brand?: string
   color?: string
   size?: string
+  tag?: string
   price?: string
   rating?: string
   sort?: string
   page?: string
-  q?: string
-  tag?: string
+  inStock?: string
+  onSale?: string
+  featured?: string
 }
 
 interface PageProps {
@@ -42,13 +35,33 @@ interface PageProps {
 
 export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams
-  const categories = await getAllCategories()
-  const sizes = await getAllSizes()
-  const colors = await getAllColors()
-  const tags = await getAllTagExtra()
 
   try {
     const payload = await getPayload({ config: configPromise })
+
+    // Fetch categories, brands, sizes, colors, and tags for filters
+    const [categoriesRes, brandsRes, sizesRes, colorsRes, tagsRes] = await Promise.all([
+      payload.find({ collection: 'categories', limit: 100 }),
+      payload.find({ collection: 'brands', limit: 100 }),
+      payload.find({ collection: 'sizes', limit: 100 }),
+      payload.find({ collection: 'colors', limit: 100 }),
+      payload.find({ collection: 'tags', limit: 100 }),
+    ])
+
+    // Extract data for filters
+    const categories = categoriesRes.docs.map(cat => ({
+      id: String(cat.id),
+      title: cat.title
+    })) || []
+
+    const brands = brandsRes.docs.map(brand => ({
+      id: String(brand.id),
+      title: brand.title
+    })) || []
+
+    const sizes = sizesRes.docs.map(size => size.title || '') || []
+    const colors = colorsRes.docs.map(color => color.title || '') || []
+    const tags = tagsRes.docs.map(tag => tag.title || '') || []
 
     // Build where clause based on search parameters
     const where: any = {
@@ -67,44 +80,88 @@ export default async function Page({ searchParams }: PageProps) {
     // Add category filter
     if (params.category && params.category !== 'all') {
       where.categories = {
-        contains: params.category,
+        equals: params.category,
       }
     }
 
-    // Add tag filter
-    if (params.tag && params.tag !== 'all') {
-      where.tags = {
-        contains: params.tag,
+    // Add brand filter
+    if (params.brand && params.brand !== 'all') {
+      where.brands = {
+        equals: params.brand,
       }
     }
 
     // Add color filter
     if (params.color && params.color !== 'all') {
       where.colors = {
-        contains: params.color.toLowerCase(),
+        some: {
+          title: {
+            equals: params.color,
+          },
+        },
       }
     }
 
     // Add size filter
     if (params.size && params.size !== 'all') {
       where.sizes = {
-        contains: params.size.toLowerCase(),
+        some: {
+          title: {
+            equals: params.size,
+          },
+        },
+      }
+    }
+
+    // Add tag filter
+    if (params.tag && params.tag !== 'all') {
+      where.tags = {
+        equals: params.tag,
       }
     }
 
     // Add price range filter
-    if (params.price && params.price !== '0-1000000') {
-      const [minPrice, maxPrice] = params.price.split('-').map(Number)
-      where.price = {
-        greater_than_equal: minPrice,
-        less_than_equal: maxPrice,
+    if (params.price) {
+      const parts = params.price.split('-');
+      const min = parts[0] ? Number(parts[0]) : 0;
+      const max = parts[1] ? Number(parts[1]) : 1000000;
+      
+      if (!isNaN(min) && !isNaN(max)) {
+        where.price = {
+          greater_than_equal: min,
+          less_than_equal: max,
+        }
       }
     }
 
     // Add rating filter
     if (params.rating && params.rating !== 'all') {
-      where.avgRating = {
-        greater_than_equal: Number(params.rating),
+      const rating = Number(params.rating)
+      if (!isNaN(rating)) {
+        where.avgRating = {
+          greater_than_equal: rating,
+        }
+      }
+    }
+
+    // Add in-stock filter
+    if (params.inStock === 'true') {
+      where.countInStock = {
+        greater_than: 0,
+      }
+    }
+
+    // Add on-sale filter
+    if (params.onSale === 'true') {
+      where.listPrice = {
+        greater_than: 0,
+      }
+    }
+
+    // Add featured filter
+    if (params.featured === 'true') {
+      where.isFeatured = {
+        equals: true,
       }
     }
 
@@ -123,6 +180,9 @@ export default async function Page({ searchParams }: PageProps) {
           break
         case 'avg-customer-review':
           sort = '-avgRating'
+          break
+        case 'newest-arrivals':
+          sort = '-createdAt'
           break
         default:
           sort = '-createdAt'
@@ -162,6 +222,20 @@ export default async function Page({ searchParams }: PageProps) {
       },
     })
 
+    // Find max price from products
+    const productsForMaxPrice = await payload.find({
+      collection: 'products',
+      sort: '-price',
+      limit: 1,
+      depth: 0,
+      overrideAccess: false,
+      select: {
+        price: true
+      },
+    });
+
+    const maxPrice = productsForMaxPrice.docs?.[0]?.price || 1000000;
+
     if (!products) {
       return (
         <main className="pb-20">
@@ -169,27 +243,14 @@ export default async function Page({ searchParams }: PageProps) {
           <div className="max-w-frame mx-auto px-4 xl:px-0">
             <Separator />
             <BreadcrumbProduct title={''} />
-            <div className="flex md:space-x-5 items-start">
-              <div className="hidden md:block min-w-[295px] max-w-[295px]">
-                <ProductFilter categories={categories} sizes={sizes} colors={colors} tags={tags} />
+            <div className="flex flex-col w-full space-y-5">
+              <div className="flex items-center justify-between">
+                <h1 className="font-bold text-2xl md:text-[32px] dark:text-white">Products</h1>
               </div>
-              <div className="flex flex-col w-full space-y-5">
-                <div className="flex flex-col lg:flex-row lg:justify-between">
-                  <div className="flex items-center justify-between">
-                    <h1 className="font-bold text-2xl md:text-[32px] dark:text-white">Products</h1>
-                    <MobileFilters
-                      categories={categories}
-                      sizes={sizes}
-                      colors={colors}
-                      tags={tags}
-                    />
-                  </div>
-                </div>
-                <div className="w-full text-center py-10">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    No products found for the selected filters.
-                  </p>
-                </div>
+              <div className="w-full text-center py-10">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No products found.
+                </p>
               </div>
             </div>
           </div>
@@ -203,39 +264,61 @@ export default async function Page({ searchParams }: PageProps) {
         <div className="max-w-frame mx-auto px-4 xl:px-0">
           <Separator />
           <BreadcrumbProduct title={''} />
-          <div className="flex md:space-x-5 items-start">
-            <div className="hidden md:block min-w-[295px] max-w-[295px]">
-              <ProductFilter categories={categories} sizes={sizes} colors={colors} tags={tags} />
-            </div>
-            <div className="flex flex-col w-full space-y-5">
-              <div className="flex flex-col lg:flex-row lg:justify-between">
-                <div className="flex items-center justify-between">
-                  <h1 className="font-bold text-2xl md:text-[32px] dark:text-white">Products</h1>
-                  <MobileFilters
-                    categories={categories}
-                    sizes={sizes}
-                    colors={colors}
-                    tags={tags}
+          <div className="flex flex-col w-full space-y-5">
+            <div className="flex flex-col lg:flex-row lg:justify-between">
+              <div>
+                <h1 className="font-bold text-2xl md:text-[32px] dark:text-white">Products</h1>
+              </div>
+              <div className="flex flex-col sm:items-center sm:flex-row">
+                <span className="text-sm md:text-base mr-3 dark:text-gray-300">
+                  <ProductPageRange
+                    collection="products"
+                    currentPage={products.page}
+                    limit={12}
+                    totalDocs={products.totalDocs}
                   />
-                </div>
-                <div className="flex flex-col sm:items-center sm:flex-row">
-                  <span className="text-sm md:text-base mr-3 dark:text-gray-300">
-                    <ProductPageRange
-                      collection="products"
-                      currentPage={products.page}
-                      limit={12}
-                      totalDocs={products.totalDocs}
-                    />
-                  </span>
-                </div>
+                </span>
               </div>
-              <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-                <ProductArchive products={products.docs} />
+            </div>
+            
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Mobile Filter Button */}
+              <div className="lg:hidden">
+                <AdvancedProductFilter 
+                  categories={categories}
+                  brands={brands}
+                  sizes={sizes}
+                  colors={colors}
+                  tags={tags}
+                  maxPrice={maxPrice}
+                  isMobile={true}
+                />
               </div>
-
-              {products.totalPages > 1 && products.page && (
-                <ProductsPagination page={products.page} totalPages={products.totalPages} />
-              )}
+              
+              {/* Desktop Filter Sidebar */}
+              <div className="hidden lg:block lg:w-1/4 xl:w-1/5">
+                <AdvancedProductFilter 
+                  categories={categories}
+                  brands={brands}
+                  sizes={sizes}
+                  colors={colors}
+                  tags={tags}
+                  maxPrice={maxPrice}
+                />
+              </div>
+              
+              {/* Products Grid */}
+              <div className="lg:w-3/4 xl:w-4/5">
+                <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4 lg:gap-5">
+                  <ProductArchive products={products.docs} />
+                </div>
+                
+                {products.totalPages > 1 && products.page && (
+                  <div className="mt-8">
+                    <ProductsPagination page={products.page} totalPages={products.totalPages} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -253,22 +336,13 @@ export async function generateMetadata({
   searchParams: Promise<SearchParams>
 }): Promise<Metadata> {
   const params = await searchParams
-  const { query = 'all', category = 'all', tag = 'all', price = 'all', rating = 'all' } = params
+  const { query = 'all' } = params
 
-  const hasFilters =
-    (query !== 'all' && query !== '') ||
-    category !== 'all' ||
-    tag !== 'all' ||
-    rating !== 'all' ||
-    price !== 'all'
+  const hasFilters = (query !== 'all' && query !== '')
 
   return {
     title: hasFilters
-      ? `Search ${query !== 'all' ? query : ''} 
-         ${category !== 'all' ? `: Category ${category}` : ''} 
-         ${tag !== 'all' ? `: Tag ${tag}` : ''} 
-         ${price !== 'all' ? `: Price ${price}` : ''} 
-         ${rating !== 'all' ? `: Rating ${rating}` : ''}`
+      ? `Search ${query !== 'all' ? query : ''}`
       : 'Payload Products',
   }
 }

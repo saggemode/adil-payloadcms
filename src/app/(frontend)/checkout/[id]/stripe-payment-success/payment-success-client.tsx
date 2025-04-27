@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import ReferralCompletionHandler from '@/components/referral/ReferralCompletionHandler'
-import { useNotifications } from '@/contexts/NotificationContext'
 import dynamic from 'next/dynamic'
 import useCartStore from '@/hooks/use-cart-store'
 
@@ -12,7 +11,6 @@ import useCartStore from '@/hooks/use-cart-store'
 const ReactConfetti = dynamic(() => import('react-confetti'), { ssr: false })
 
 export default function PaymentSuccessClient({ orderId }: { orderId: string }) {
-  const { addNotification } = useNotifications()
   const [showConfetti, setShowConfetti] = useState(true)
   const [windowSize, setWindowSize] = useState({
     width: 0,
@@ -48,10 +46,7 @@ export default function PaymentSuccessClient({ orderId }: { orderId: string }) {
   // Separate useEffect for notification and confetti timer
   useEffect(() => {
     // Show success notification when component mounts
-    // addNotification({
-    //   type: 'success',
-    //   message: `Payment successful! Your order #${orderId} has been confirmed.`
-    // })
+    console.log(`Payment successful! Your order #${orderId} has been confirmed.`)
     
     // We're no longer hiding confetti after a timeout - it will stay visible
 

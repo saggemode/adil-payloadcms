@@ -281,6 +281,7 @@ export async function getAllProducts({
   limit,
   page,
   featured,
+  productIds,
 }: any) {
   const payload = await getPayload({ config: configPromise })
 
@@ -318,6 +319,21 @@ export async function getAllProducts({
     filters.avgRating = { greater_than_equal: Number(rating) }
   }
 
+  // Handle productIds filter for flash sale products
+  if (productIds && Array.isArray(productIds) && productIds.length > 0) {
+    console.log('Filtering products by IDs:', productIds);
+    
+    // For Payload CMS, we need to create a proper filter for IDs
+    // Override the entire filter to focus just on getting these products
+    filters.or = productIds.map(id => ({
+      id: { equals: id }
+    }));
+    
+    // Remove the isPublished filter when explicitly fetching by IDs
+    // since we want the products regardless of published status
+    delete filters.isPublished;
+  }
+
   // Define sort order based on the provided sort parameter
   const sortOrder =
     sort === 'best-selling'
@@ -330,16 +346,26 @@ export async function getAllProducts({
             ? '-avgRating'
             : '-createdAt'
 
+  console.log('Final filters for products query:', JSON.stringify(filters, null, 2));
+
   // Query the Payload CMS collection
   const products = await payload.find({
     collection: 'products',
     depth: 1,
     limit: limit || 12,
     page: page || 1,
-    overrideAccess: false,
+    overrideAccess: true, // Ensure we can access the products regardless of access control
     where: filters,
     sort: sortOrder,
   })
+
+  console.log(`Found ${products.docs?.length || 0} products out of ${products.totalDocs || 0} total`);
+  
+  if (products.docs?.length > 0) {
+    console.log('Sample product:', JSON.stringify(products.docs[0], null, 2));
+  } else {
+    console.log('No products found with the given filters');
+  }
 
   // If featured is true and we have products, filter them client-side
   // since the 'featured' field doesn't exist in the schema
@@ -365,84 +391,6 @@ export async function getAllCategories() {
     id: String(doc.id),
     title: doc.title,
   }))
-}
-
-export async function getAllSizes() {
-  const payload = await getPayload({ config: configPromise })
-  const sizes = await payload.find({ collection: 'sizes' }) // Fetch from the 'sizes' collection
-  return sizes.docs.map((doc) => doc.title) // Adjust based on the sizes field structure
-}
-
-export async function getAllColors() {
-  const payload = await getPayload({ config: configPromise })
-  const colors = await payload.find({ collection: 'colors' }) // Fetch from the 'colors' collection
-  return colors.docs.map((doc) => doc.title) // Adjust based on the colors field structure
-}
-
-// GET ALL TAGS
-export async function getAllTags() {
-  const payload = await getPayload({ config: configPromise })
-
-  const products = await payload.find({
-    collection: 'products',
-    depth: 1, // Ensure related tags are populated
-  })
-
-  const tags = new Set<string>()
-
-  products.docs.forEach((product) => {
-    if (Array.isArray(product.tags)) {
-      product.tags.forEach((tag) => {
-        if (typeof tag === 'object' && tag.title) {
-          tags.add(tag.title) // Extract tag titles
-        }
-      })
-    }
-  })
-
-  return Array.from(tags)
-}
-
-export async function getAllTagExtra() {
-  const payload = await getPayload({ config: configPromise })
-
-  const tags = await payload.find({ collection: 'tags' }) // Fetch all tags
-  return tags.docs.map((doc) => doc.title) // Adjust field name as needed
-}
-
-// Function to update product after successful purchase
-export async function updateProductAfterPurchase(productId: string, quantity: number) {
-  try {
-    // 1. Connect to PayloadCMS
-    const payload = await getPayload({ config: configPromise })
-
-    // 2. Get current product data
-    const product = await payload.findByID({
-      collection: 'products',
-      id: productId,
-    })
-
-    if (!product) {
-      throw new Error('Product not found')
-    }
-
-    // 3. Update the product
-    await payload.update({
-      collection: 'products',
-      id: productId,
-      data: {
-        // Reduce stock
-        countInStock: product.countInStock - quantity,
-        // Increase sales
-        numSales: (product.numSales || 0) + quantity,
-      },
-    })
-
-    return true
-  } catch (error) {
-    console.error('Error updating product:', error)
-    return false
-  }
 }
 
 

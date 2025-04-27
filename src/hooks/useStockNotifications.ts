@@ -1,48 +1,16 @@
-import { useEffect } from 'react';
-import { useNotifications } from '@/contexts/NotificationContext';
-import wsClient from '@/websocket/WebSocketClient';
-
+// Minimal hook that maintains API compatibility without notifications
 export const useStockNotifications = () => {
-  const { addNotification } = useNotifications();
-
-  useEffect(() => {
-    // Only run if we're in the browser environment
-    if (typeof window === 'undefined') return;
-
-    try {
-      // Set up the notification callback
-      wsClient.setNotificationCallback((notification) => {
-        addNotification(notification);
-      });
-
-      // Clean up when component unmounts
-      return () => {
-        try {
-          wsClient.setNotificationCallback(null);
-        } catch (error) {
-          // Silent error handling
-        }
-      };
-    } catch (error) {
-      // Silent error handling for WebSocket issues
-      console.log('WebSocket notifications unavailable');
-    }
-  }, [addNotification]);
-
+  // Return dummy functions 
   return {
     setStockThreshold: (threshold: number) => {
-      try {
-        wsClient.setStockThreshold(threshold);
-      } catch (error) {
-        // Silent error handling
+      // Store threshold in localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('stockThreshold', threshold.toString());
       }
     },
     enableWebSocket: () => {
-      try {
-        wsClient.enable();
-      } catch (error) {
-        // Silent error handling
-      }
+      // No-op function
+      console.log('[Stub] Stock monitoring enabled');
     }
   };
 }; 

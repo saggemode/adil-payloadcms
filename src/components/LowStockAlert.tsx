@@ -4,7 +4,6 @@ import React from 'react'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { useStockNotifications } from '@/hooks/useStockNotifications'
-import { toast } from '@/hooks/use-toast'
 
 interface LowStockAlertProps {
   productId: string
@@ -37,15 +36,12 @@ export const LowStockAlert = ({
   }
   
   const handleSubscribe = () => {
-    // Set threshold and enable notifications
+    // Set threshold and enable monitoring
     setStockThreshold(threshold)
     enableWebSocket()
     
-    // Provide feedback to user
-    toast({
-      title: "Notification Set",
-      description: `You'll be notified when ${productName} stock changes.`,
-    })
+    // Provide visual feedback (replaced toast with console log)
+    console.log(`Monitoring set for ${productName}`);
   }
   
   return (
@@ -98,7 +94,7 @@ export const LowStockAlert = ({
           className="text-xs"
           onClick={handleSubscribe}
         >
-          Notify Me
+          Monitor Stock
         </Button>
       </div>
     </div>

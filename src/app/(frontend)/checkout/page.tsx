@@ -10,6 +10,9 @@ import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { getMeUser } from '@/utilities/getMeUser'
 import CheckoutForm from '@/components/CheckOut'
 
+// Force dynamic rendering because this page uses cookies
+export const dynamic = 'force-dynamic'
+
 export default async function CheckoutPage() {
   try {
     // Verify user is logged in and redirect if not

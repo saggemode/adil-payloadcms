@@ -2,8 +2,6 @@
 import { useHeaderTheme } from '@/providers/HeaderTheme'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import { Bell } from 'lucide-react'
-import { useNotifications } from '@/contexts/NotificationContext'
 import { cn } from '@/utilities/ui'
 
 import type { Header } from '@/payload-types'
@@ -15,8 +13,6 @@ import Hdata from './data'
 import Search from './search'
 import Sidebar from './sidebar'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 
 interface HeaderClientProps {
   data: Header
@@ -29,8 +25,6 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories, cl
   const [theme, setTheme] = useState<string | null>(null)
   const { headerTheme, setHeaderTheme } = useHeaderTheme()
   const pathname = usePathname()
-  const { notifications } = useNotifications()
-  const [showNotifications, setShowNotifications] = useState(false)
 
   useEffect(() => {
     setHeaderTheme(null)
@@ -55,20 +49,6 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories, cl
             <Search categories={categories} />
           </div>
           <div className="flex items-center gap-2">
-         
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <Bell className="h-5 w-5" />
-              {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 text-xs flex items-center justify-center">
-                  {notifications.length}
-                </span>
-              )}
-            </Button>
             <Menu />
           </div>
         </div>
@@ -88,8 +68,6 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, categories, cl
         </div>
         <HeaderNav data={data} />
       </div>
-
-      {showNotifications && <NotificationCenter />}
     </header>
   )
 }

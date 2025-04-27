@@ -6,7 +6,6 @@ import { AuthProvider } from './Auth'
 import { FilterProvider } from './Filter'
 import ClientProviders from './ClientProvider/client-providers'
 import QueryProvider from './QueryProvider/QueryProvider'
-import { NotificationProvider } from '@/contexts/NotificationContext'
 import { CompareProvider } from '@/contexts/CompareContext'
 
 
@@ -20,14 +19,9 @@ export const Providers: React.FC<{
           <FilterProvider>
             <HeaderThemeProvider>
               <ClientProviders>
-                <NotificationProvider>
-                  <CompareProvider>
-                   
-                      {children}
-                      {/* <NotificationCenter /> */}
-                   
-                  </CompareProvider>
-                </NotificationProvider>
+                <CompareProvider>
+                  {children}
+                </CompareProvider>
               </ClientProviders>
             </HeaderThemeProvider>
           </FilterProvider>

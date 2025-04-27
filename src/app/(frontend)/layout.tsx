@@ -10,9 +10,9 @@ import { InitTheme } from '@/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import ClientCompareBar from '@/components/ClientCompareBar'
 import { APP_NAME, APP_DESCRIPTION } from '@/constants'
-import dynamic from 'next/dynamic'
 import './globals.css'
 import { getServerSideURL } from '@/utilities/getURL'
+import Script from 'next/script'
 
 // Error Boundary Component
 const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
@@ -40,6 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link href="/favicon.ico" rel="icon" sizes="32x32" />
         <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#33A1E6" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className="min-h-screen flex flex-col">
         <ErrorBoundary>
@@ -54,6 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Suspense>
           </Providers>
         </ErrorBoundary>
+        <Script src="/js/pwa-register.js" strategy="lazyOnload" />
       </body>
     </html>
   )
@@ -80,5 +84,10 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
     apple: '/favicon.ico',
   },
- 
+  applicationName: APP_NAME,
+  appleWebApp: {
+    capable: true,
+    title: APP_NAME,
+    statusBarStyle: 'default'
+  }
 }

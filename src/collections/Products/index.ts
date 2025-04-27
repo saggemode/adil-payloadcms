@@ -14,7 +14,7 @@ import { Code } from '../../blocks/Code/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { revalidateDelete, revalidateProduct } from './hooks/revalidateProducts'
-//import { monitorStock } from './hooks/monitorStock'
+
 import { generateBarcode } from './hooks/generateBarcode'
 // We'll use a simpler approach without a custom hook for now
 // import { validateBarcode } from './hooks/validateBarcode'

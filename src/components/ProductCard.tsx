@@ -5,7 +5,7 @@ import {
   getCurrentPrice,
   getDiscountPercentage,
   FlashSaleProduct,
-} from '../../lib/utils/flashSale'
+} from '../utilities/flashSales'
 
 interface ProductCardProps {
   product: FlashSaleProduct

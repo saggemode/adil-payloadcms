@@ -21,7 +21,7 @@ import { formatDateTime2 } from '@/utilities/generateId'
 
 import { Order } from '@/payload-types'
 import { useState, useEffect, useMemo } from 'react'
-import { useNotifications } from '@/contexts/NotificationContext'
+
 
 export default function OrderPaymentForm({
   order,
@@ -36,7 +36,7 @@ export default function OrderPaymentForm({
   const router = useRouter()
   const [isPaypalLoading, setIsPaypalLoading] = useState(false)
   const [isCodLoading, setIsCodLoading] = useState(false)
-  const { addNotification } = useNotifications()
+
   const {
     shippingAddress,
     items,
@@ -75,17 +75,11 @@ export default function OrderPaymentForm({
     
   if (!stripePublishableKey && paymentMethod === 'Stripe' && !isPaid) {
     console.error('Missing Stripe publishable key');
-    addNotification({
-      type: 'error',
-      message: 'Payment configuration error. Please contact support.'
-    });
+    
   }
 
   if (isPaid) {
-    addNotification({
-      type: 'success',
-      message: `Order #${order.id} has already been paid`
-    });
+   
     redirect(`/account/orders/${order.id}`)
   }
   function PrintLoadingState() {
@@ -100,33 +94,21 @@ export default function OrderPaymentForm({
   }
   const handleCreatePayPalOrder = async () => {
     setIsPaypalLoading(true)
-    addNotification({
-      type: 'info',
-      message: 'Initializing PayPal payment...'
-    });
+  
     try {
       const res = await createPayPalOrder(order.id.toString())
       if (!res.success) {
-        addNotification({
-          type: 'error',
-          message: res.message || 'Failed to create PayPal order'
-        });
+       
         toast({
           description: res.message,
           variant: 'destructive',
         })
         return null
       }
-      addNotification({
-        type: 'success',
-        message: 'PayPal order created successfully'
-      });
+     
       return res.data
     } catch (error) {
-      addNotification({
-        type: 'error',
-        message: formatError(error) || 'Failed to create PayPal order'
-      });
+     
       toast({
         description: formatError(error),
         variant: 'destructive',
@@ -138,32 +120,20 @@ export default function OrderPaymentForm({
   }
   const handleApprovePayPalOrder = async (data: { orderID: string }) => {
     setIsPaypalLoading(true)
-    addNotification({
-      type: 'info',
-      message: 'Processing PayPal payment...'
-    });
+  
     try {
       const res = await approvePayPalOrder(order.id.toString(), data)
       if (res.success) {
-        addNotification({
-          type: 'success',
-          message: `Payment successful! Order #${order.id} has been paid`
-        });
+       
       } else {
-        addNotification({
-          type: 'error',
-          message: res.message || 'Payment failed'
-        });
+       
       }
       toast({
         description: res.message,
         variant: res.success ? 'default' : 'destructive',
       })
     } catch (error) {
-      addNotification({
-        type: 'error',
-        message: formatError(error) || 'Payment failed'
-      });
+    
       toast({
         description: formatError(error),
         variant: 'destructive',

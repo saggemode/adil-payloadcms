@@ -14,18 +14,10 @@ import { useFeaturedProductsCarousel } from '@/hooks/useProducts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Timer } from 'lucide-react'
 import type { CarouselApi } from '@/components/ui/carousel'
+import { Product as PayloadProduct } from '@/payload-types'
 
-// Define Product interface
-interface Product {
-  id: string;
-  slug: string;
-  title: string;
-  price: number;
-  content?: string;
-  images?: Array<{
-    image: any;
-  }>;
-}
+// Extend the payload product type with our component's needs
+type Product = PayloadProduct;
 
 export default function ProductCarouselBanner() {
   const { data, isLoading, error } = useFeaturedProductsCarousel()
@@ -67,21 +59,34 @@ export default function ProductCarouselBanner() {
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 })
   
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 }
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 }
-        }
-        return { hours: 23, minutes: 59, seconds: 59 } // Reset when reaches 0
-      })
-    }, 1000)
+    const calculateTimeLeft = () => {
+      // For demo purposes, use a fixed end date 24 hours from component mount
+      const endTime = new Date();
+      endTime.setHours(endTime.getHours() + 24);
+      
+      const difference = endTime.getTime() - new Date().getTime();
+      
+      if (difference <= 0) {
+        return { hours: 0, minutes: 0, seconds: 0 };
+      }
+      
+      return {
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      };
+    };
     
-    return () => clearInterval(timer)
-  }, [])
+    // Set initial time
+    setTimeLeft(calculateTimeLeft());
+    
+    // Update every second
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
   
   // Custom carousel controls
   const handleNext = useCallback(() => {

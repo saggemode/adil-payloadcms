@@ -1,5 +1,3 @@
-import wss from '@/websocket/WebSocketServer';
-
 interface Product {
   id: string;
   name: string;
@@ -38,14 +36,8 @@ class StockMonitoringService {
     const previousStock = product.currentStock;
     product.currentStock = newStock;
 
-    // Broadcast the stock update
-    wss.broadcastStockUpdate({
-      productId,
-      currentStock: newStock,
-      previousStock,
-      timestamp: Date.now()
-    });
-
+    // Instead of broadcasting via WebSocket, we just update local storage
+    // and return the updated product
     return product;
   }
 

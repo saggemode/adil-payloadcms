@@ -5,7 +5,6 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import ProductPrice from '@/components/ProductArchive/Price'
 import { SERVER_URL } from '@/constants'
-import { useNotifications } from '@/contexts/NotificationContext'
 
 export default function StripeForm({
   priceInCents,
@@ -18,7 +17,6 @@ export default function StripeForm({
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const { addNotification } = useNotifications()
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -38,10 +36,7 @@ export default function StripeForm({
 
     if (!stripe || !elements) {
       console.error("Stripe or Elements is not initialized");
-      addNotification({
-        type: 'error',
-        message: 'Payment system is not fully loaded. Please try again in a moment.'
-      });
+      console.log('Payment system is not fully loaded. Please try again in a moment.');
       return;
     }
 
@@ -65,18 +60,12 @@ export default function StripeForm({
       if (result.error) {
         console.error("Payment error:", result.error);
         setErrorMessage(result.error.message || "Payment failed");
-        addNotification({
-          type: 'error',
-          message: result.error.message || "Payment failed"
-        });
+        console.log('Payment error:', result.error.message || "Payment failed");
       }
     } catch (err) {
       console.error("Exception during payment:", err);
       setErrorMessage("An unexpected error occurred");
-      addNotification({
-        type: 'error',
-        message: 'An unexpected error occurred during payment'
-      });
+      console.log('An unexpected error occurred during payment');
     } finally {
       setIsLoading(false);
     }

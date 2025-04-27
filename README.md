@@ -319,3 +319,24 @@ You can also deploy your app manually, check out the [deployment documentation](
 ## Questions
 
 If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+
+## Mobile App Features
+
+This ecommerce platform includes Progressive Web App (PWA) capabilities, allowing users to install it on their mobile devices and access it offline:
+
+- **PWA Support**: Install the website as a native-like app on mobile devices
+- **Offline Access**: Basic browsing and product viewing without internet connection
+- **App Installation Prompt**: Smart prompts for installing the app based on device and usage patterns
+- **Mobile-Optimized Experience**: Responsive design with special mobile enhancements
+- **Add to Home Screen**: Easy installation via browser's add to home screen functionality
+- **Push Notifications**: Support for real-time order updates and promotional alerts
+- **Dedicated Download Page**: Special page with QR code for app installation
+
+### Installation Instructions
+
+To install the PWA on your mobile device:
+
+1. Navigate to the website using Chrome (Android) or Safari (iOS)
+2. For Android: Click the prompt that appears or use the menu button and select "Add to Home Screen"
+3. For iOS: Tap the share button, then "Add to Home Screen"
+4. Follow the on-screen instructions to complete installation
