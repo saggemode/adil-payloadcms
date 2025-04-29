@@ -41,8 +41,6 @@ import { Returns } from './collections/Returns'
 // Import our barcode lookup endpoint
 import { barcodeLookup } from './endpoints/api/barcode-lookup'
 import { generateBarcodes } from './endpoints/api/generate-barcodes'
-import Terms from './collections/Terms'
-
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -145,7 +143,6 @@ export default buildConfig({
     ReferralRewards,
     InvoiceTemplates,
     Returns,
-    Terms,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
