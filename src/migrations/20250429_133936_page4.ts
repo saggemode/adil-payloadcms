@@ -126,7 +126,28 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
    WHEN duplicate_object THEN null;
   END $$;
   
-  CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_terms_id_idx" ON "payload_locked_documents_rels" USING btree ("terms_id");`)
+  CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_terms_id_idx" ON "payload_locked_documents_rels" USING btree ("terms_id");
+
+  -- Add terms_id column if it doesn't exist
+  DO $$ BEGIN
+    ALTER TABLE "terms_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
+  EXCEPTION
+    WHEN duplicate_column THEN null;
+  END $$;
+
+  -- Copy data from categories_id to terms_id if needed
+  DO $$ BEGIN
+    UPDATE "terms_rels" SET "terms_id" = "categories_id" WHERE "categories_id" IS NOT NULL;
+  EXCEPTION
+    WHEN undefined_column THEN null;
+  END $$;
+
+  -- Drop categories_id column if it exists
+  DO $$ BEGIN
+    ALTER TABLE "terms_rels" DROP COLUMN IF EXISTS "categories_id";
+  EXCEPTION
+    WHEN undefined_column THEN null;
+  END $$;`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
