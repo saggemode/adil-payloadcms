@@ -87,6 +87,7 @@ export const FlashSaleSection = () => {
     
     // Cleanup interval on unmount
     return () => clearInterval(timerInterval);
+    
   }, [firstFlashSale]);
 
   if (isLoading) {
