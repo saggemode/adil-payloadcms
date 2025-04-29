@@ -3,7 +3,7 @@
 import { Popover, Transition, PopoverButton, PopoverPanel } from '@/components/headlessui'
 import { Fragment } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Clipboard, Heart, LogOut, Settings, User } from 'lucide-react'
+import { Clipboard, Heart, LogOut, Settings, User, Package2 } from 'lucide-react'
 import { useAuth } from '@/providers/Auth'
 import Link from 'next/link'
 
@@ -32,10 +32,8 @@ export default function AvatarDropdown() {
                 <div className="overflow-hidden rounded-3xl shadow-lg ring-1 ring-black ring-opacity-5">
                   <div className="relative grid grid-cols-1 gap-6 bg-white dark:bg-neutral-800 py-7 px-6">
                     <div className="flex items-center space-x-3">
-                      {/* <Avatar imgUrl={avatarImgs[7]} sizeClass="w-12 h-12" /> */}
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          //src={user?.image ?? ''}
                           alt={user?.name ?? ''}
                         />
                         <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
@@ -48,7 +46,6 @@ export default function AvatarDropdown() {
 
                     <div className="w-full border-b border-neutral-200 dark:border-neutral-700" />
 
-                    {/* ------------------ 1 --------------------- */}
                     <Link
                       prefetch={true}
                       href={'/user/profile'}
@@ -63,7 +60,6 @@ export default function AvatarDropdown() {
                       </div>
                     </Link>
 
-                    {/* ------------------ 2 --------------------- */}
                     <Link
                       prefetch={true}
                       href={'/user/order'}
@@ -78,7 +74,6 @@ export default function AvatarDropdown() {
                       </div>
                     </Link>
 
-                    {/* ------------------ 2 --------------------- */}
                     <Link
                       prefetch={true}
                       href={'/account-savelists'}
@@ -95,7 +90,6 @@ export default function AvatarDropdown() {
 
                     <div className="w-full border-b border-neutral-200 dark:border-neutral-700" />
 
-                    {/* ------------------ 2 --------------------- */}
                     <Link
                       prefetch={true}
                       href={'/'}
@@ -110,12 +104,10 @@ export default function AvatarDropdown() {
                       </div>
                     </Link>
 
-                    {/* ------------------ 2 --------------------- */}
                     <Link
                       prefetch={true}
                       href={'/'}
                       className="flex items-center p-2 -m-3 transition duration-150 ease-in-out rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 focus:outline-none focus-visible:ring focus-visible:ring-orange-500 focus-visible:ring-opacity-50"
-                      // onClick={() => signOut()}
                     >
                       <div className="flex items-center justify-center flex-shrink-0 text-neutral-500 dark:text-neutral-300">
                         <LogOut className="w-6 h-6" />

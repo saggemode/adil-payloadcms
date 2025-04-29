@@ -7,7 +7,7 @@ import { FilterProvider } from './Filter'
 import ClientProviders from './ClientProvider/client-providers'
 import QueryProvider from './QueryProvider/QueryProvider'
 import { CompareProvider } from '@/contexts/CompareContext'
-
+import { WishlistProvider } from '@/contexts/WishlistContext'
 
 export const Providers: React.FC<{
   children: React.ReactNode
@@ -20,7 +20,9 @@ export const Providers: React.FC<{
             <HeaderThemeProvider>
               <ClientProviders>
                 <CompareProvider>
-                  {children}
+                  <WishlistProvider>
+                    {children}
+                  </WishlistProvider>
                 </CompareProvider>
               </ClientProviders>
             </HeaderThemeProvider>

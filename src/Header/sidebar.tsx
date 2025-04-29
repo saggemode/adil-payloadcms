@@ -90,8 +90,13 @@ export default function Sidebar({ categories }: SidebarProps) {
               </Link>
             </DrawerClose>
             <DrawerClose asChild>
-              <Link href="/account/wishlist" className="p-4 hover:bg-muted transition-colors flex items-center">
-                Your wishlist
+              <Link href="/account/orders" className="p-4 hover:bg-muted transition-colors flex items-center">
+                Your orders
+              </Link>
+            </DrawerClose>
+            <DrawerClose asChild>
+              <Link href="/account/settings" className="p-4 hover:bg-muted transition-colors flex items-center">
+                Settings
               </Link>
             </DrawerClose>
             <DrawerClose asChild>

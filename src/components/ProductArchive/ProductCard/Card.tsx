@@ -23,26 +23,14 @@ import AddToCart from '@/components/ProductArchive/add-to-cart'
 import Rating from '../rating'
 import WishlistButton from '../wishlist-button'
 import CompareButton from '../compare-button'
-
-export type CardProduct = Pick<
-  Product,
-  | 'slug'
-  | 'categories'
-  | 'meta'
-  | 'title'
-  | 'images'
-  | 'listPrice'
-  | 'price'
-  | 'countInStock'
-  | 'id'
-  | 'sizes'
-  | 'colors'
-  | 'tags'
-  | 'avgRating'
-  | 'numReviews'
-  | 'flashSaleDiscount'
-  | 'numSales'
->
+import { cn } from '@/lib/utils'
+import { formatPrice } from '@/utilities/formatPrice'
+import { calculateDiscountedPrice } from '@/utilities/calculateDiscountedPrice'
+import { Badge } from '@/components/ui/badge'
+import { CardFooter } from '@/components/ui/card'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { AddToCartButton } from '@/components/AddToCartButton'
+import { CardProduct } from '@/types/product'
 
 export const Card: React.FC<{
   className?: string
@@ -70,6 +58,8 @@ export const Card: React.FC<{
     numReviews,
     flashSaleDiscount,
     numSales,
+    brands,
+    isFeatured,
   } = doc || {}
 
   const href = `/${relationTo}/${slug}`
@@ -148,22 +138,6 @@ export const Card: React.FC<{
               -{discountPercentage}%
             </div>
           )}
-          
-          {/* Wishlist Button */}
-          <div 
-            className="absolute top-2 right-2 z-10" 
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // Log product ID for debugging
-              if (process.env.NODE_ENV === 'development') {
-                console.log('Product ID in Card component:', id);
-              }
-            }}
-            data-product-id={id}
-          >
-            <WishlistButton productId={id?.toString() ?? ''} />
-          </div>
           
           {/* Product Image */}
           <div className="relative w-full aspect-square overflow-hidden rounded-md mb-1">

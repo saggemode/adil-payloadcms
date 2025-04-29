@@ -1,222 +1,140 @@
-'use server'
-
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { getMeUser } from '@/utilities/getMeUser'
-import { formatError } from '@/utilities/generateId'
 
-export async function addToWishlist(productId: string) {
-  const payload = await getPayload({ config: configPromise })
-  const { user } = await getMeUser()
-
-  if (!user) {
-    return { success: false, message: 'User is not authenticated' }
-  }
-
-  try {
-    // Check if user already has a wishlist
-    const existingWishlist = await payload.find({
-      collection: 'wishlists',
-      where: {
-        user: { equals: user.id },
-      },
-    })
-
-    console.log('Existing wishlist:', existingWishlist)
-    console.log('Product ID:', productId)
-    console.log('User ID:', user.id)
-
-    if (existingWishlist.docs.length > 0) {
-      // Update existing wishlist
-      const wishlist = existingWishlist.docs[0]
-      if (!wishlist) return { success: false, message: 'Wishlist not found' }
-      
-      const items = wishlist.items || []
-      
-      // Check if product is already in wishlist
-      const productExists = items.some((item: any) => 
-        typeof item.product === 'number' 
-          ? item.product === parseInt(productId)
-          : item.product.id === parseInt(productId)
-      )
-      
-      if (productExists) {
-        return { success: true, message: 'Product already in wishlist' }
-      }
-      
-      try {
-        await payload.update({
-          collection: 'wishlists',
-          id: wishlist.id,
-          data: {
-            items: [
-              ...items,
-              {
-                product: parseInt(productId),
-                addedAt: new Date().toISOString(),
-              },
-            ],
-          },
-        })
-      } catch (updateError) {
-        console.error('Update error:', updateError)
-        throw updateError
-      }
-    } else {
-      // Create new wishlist
-      try {
-        await payload.create({
-          collection: 'wishlists',
-          data: {
-            user: user.id,
-            items: [
-              {
-                product: parseInt(productId),
-                addedAt: new Date().toISOString(),
-              },
-            ],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        })
-      } catch (createError) {
-        console.error('Create error:', createError)
-        throw createError
-      }
-    }
-
-    return { success: true, message: 'Added to wishlist successfully' }
-  } catch (error) {
-    console.error('Wishlist error:', error)
-    return { success: false, message: formatError(error) }
-  }
+export interface WishlistItem {
+  product: string
+  quantity?: number
+  notes?: string
+  priority?: 'low' | 'medium' | 'high'
 }
 
-export async function removeFromWishlist(productId: string) {
-  const payload = await getPayload({ config: configPromise })
-  const { user } = await getMeUser()
-
-  if (!user) {
-    return { success: false, message: 'User is not authenticated' }
-  }
-
-  try {
-    console.log('Removing product from wishlist:', { productId, userId: user.id })
-    
-    const wishlist = await payload.find({
-      collection: 'wishlists',
-      where: {
-        user: { equals: user.id },
-      },
-    })
-
-    if (wishlist.docs.length > 0) {
-      const currentWishlist = wishlist.docs[0]
-      if (!currentWishlist) return { success: false, message: 'Wishlist not found' }
-      
-      const items = currentWishlist.items || []
-      console.log('Current items:', items)
-      
-      // Convert productId to number for comparison
-      const productIdNum = parseInt(productId)
-      
-      // Filter out the item with matching product ID
-      const updatedItems = items.filter((item: any) => {
-        const itemProductId = typeof item.product === 'number' 
-          ? item.product 
-          : item.product.id
-        return itemProductId !== productIdNum
-      })
-      
-      console.log('Updated items:', updatedItems)
-      
-      if (updatedItems.length === items.length) {
-        return { success: false, message: 'Product not found in wishlist' }
-      }
-      
-      try {
-        await payload.update({
-          collection: 'wishlists',
-          id: currentWishlist.id,
-          data: {
-            items: updatedItems,
-            updatedAt: new Date().toISOString(),
-          },
-        })
-        return { success: true, message: 'Removed from wishlist successfully' }
-      } catch (updateError) {
-        console.error('Error updating wishlist:', updateError)
-        throw updateError
-      }
-    }
-
-    return { success: false, message: 'Wishlist not found' }
-  } catch (error) {
-    console.error('Error in removeFromWishlist:', error)
-    return { success: false, message: formatError(error) }
-  }
+export interface CreateWishlistParams {
+  name: string
+  userId: string
+  isPublic?: boolean
+  items?: WishlistItem[]
 }
 
-export async function getWishlist() {
-  const payload = await getPayload({ config: configPromise })
-  const { user } = await getMeUser()
-
-  if (!user) {
-    return { success: false, message: 'User is not authenticated' }
-  }
-
-  try {
-    const wishlist = await payload.find({
-      collection: 'wishlists',
-      where: {
-        user: { equals: user.id },
-      },
-      depth: 2, // This will populate the product details
-    })
-
-    return {
-      success: true,
-      data: wishlist.docs[0] || { items: [] },
-    }
-  } catch (error) {
-    return { success: false, message: formatError(error) }
-  }
+export interface UpdateWishlistParams {
+  id: string
+  name?: string
+  isPublic?: boolean
+  items?: WishlistItem[]
 }
 
-export async function isInWishlist(productId: string) {
+export const createWishlist = async ({ name, userId, isPublic = false, items = [] }: CreateWishlistParams) => {
   const payload = await getPayload({ config: configPromise })
-  const { user } = await getMeUser()
 
-  if (!user) {
-    return { success: false, message: 'User is not authenticated' }
-  }
+  return payload.create({
+    collection: 'wishlists',
+    data: {
+      name,
+      user: userId,
+      isPublic,
+      items: items.map(item => ({
+        ...item,
+        addedAt: new Date(),
+      })),
+    },
+  })
+}
 
-  try {
-    const wishlist = await payload.find({
-      collection: 'wishlists',
-      where: {
-        user: { equals: user.id },
+export const updateWishlist = async ({ id, name, isPublic, items }: UpdateWishlistParams) => {
+  const payload = await getPayload({ config: configPromise })
+
+  return payload.update({
+    collection: 'wishlists',
+    id,
+    data: {
+      ...(name && { name }),
+      ...(typeof isPublic === 'boolean' && { isPublic }),
+      ...(items && {
+        items: items.map(item => ({
+          ...item,
+          addedAt: new Date(),
+        })),
+      }),
+    },
+  })
+}
+
+export const deleteWishlist = async (id: string) => {
+  const payload = await getPayload({ config: configPromise })
+
+  return payload.delete({
+    collection: 'wishlists',
+    id,
+  })
+}
+
+export const getWishlist = async (id: string) => {
+  const payload = await getPayload({ config: configPromise })
+
+  return payload.findByID({
+    collection: 'wishlists',
+    id,
+  })
+}
+
+export const getUserWishlists = async (userId: string) => {
+  const payload = await getPayload({ config: configPromise })
+
+  return payload.find({
+    collection: 'wishlists',
+    where: {
+      user: {
+        equals: userId,
       },
-      depth: 2, // Ensure proper population
-    })
+    },
+  })
+}
 
-    if (wishlist.docs.length > 0) {
-      const wishlistDoc = wishlist.docs[0]
-      if (!wishlistDoc) return { success: true, data: false }
-      
-      const items = wishlistDoc.items || []
-      const exists = items.some((item: any) => {
-        // Check both for populated objects and IDs
-        if (typeof item.product === 'object' && item.product !== null) {
-          return item.product.id === parseInt(productId);
-        }
-        return item.product === parseInt(productId);
-      });
-      return { success: true, data: exists }
+export const addItemToWishlist = async (wishlistId: string, item: WishlistItem) => {
+  const payload = await getPayload({ config: configPromise })
+
+  const wishlist = await getWishlist(wishlistId)
+  const updatedItems = [
+    ...(wishlist.items || []),
+    {
+      ...item,
+      addedAt: new Date(),
+    },
+  ]
+
+  return updateWishlist({
+    id: wishlistId,
+    items: updatedItems,
+  })
+}
+
+export const removeItemFromWishlist = async (wishlistId: string, productId: string) => {
+  const payload = await getPayload({ config: configPromise })
+
+  const wishlist = await getWishlist(wishlistId)
+  const updatedItems = wishlist.items.filter((item: any) => item.product !== productId)
+
+  return updateWishlist({
+    id: wishlistId,
+    items: updatedItems,
+  })
+}
+
+export const updateWishlistItem = async (wishlistId: string, productId: string, updates: Partial<WishlistItem>) => {
+  const payload = await getPayload({ config: configPromise })
+
+  const wishlist = await getWishlist(wishlistId)
+  const updatedItems = wishlist.items.map((item: any) => {
+    if (item.product === productId) {
+      return {
+        ...item,
+        ...updates,
+      }
     }
+    return item
+  })
 
-    return { success: true, data: false }
-  } catch (error) {
-    return { success: false, message: formatError(error) }
-  }
+  return updateWishlist({
+    id: wishlistId,
+    items: updatedItems,
+  })
 } 

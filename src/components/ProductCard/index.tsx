@@ -1,14 +1,19 @@
 'use client'
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 import Rating from '@/components/ProductArchive/rating';
 import { Product } from '@/payload-types';
-import AddToCart from '@/components/ProductArchive/add-to-cart';
+
+import { formatPrice } from '@/utilities/formatPrice';
+//import { calculateDiscountedPrice } from '@/utilities/calculateDiscountedPrice';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+//import { AddToCartButton } from '@/components/AddToCartButton';
 import { generateId, round2 } from '@/utilities/generateId';
-import WishlistButton from '@/components/ProductArchive/wishlist-button';
 import CompareButton from '@/components/ProductArchive/compare-button';
+import AddToCart from '../ProductArchive/add-to-cart';
 
 type ProductCardProps = {
   product: Product;
@@ -71,24 +76,6 @@ export const ProductCard = ({
               -{discountAmount}%
             </div>
           )}
-          
-          {/* Wishlist & Compare Buttons */}
-          <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
-            <WishlistButton productId={id?.toString() ?? ''} />
-            <CompareButton product={{
-              id,
-              slug,
-              title,
-              price,
-              listPrice,
-              images,
-              countInStock,
-              categories,
-              avgRating: avgRating || 0,
-              numReviews: numReviews || 0,
-              flashSaleDiscount: flashSaleDiscount || 0
-            }} />
-          </div>
           
           {/* Stock Status */}
           {countInStock === 0 && (
@@ -156,19 +143,16 @@ export const ProductCard = ({
                 <AddToCart
                   item={{
                     clientId: generateId(),
-                    product: id ?? 0,
+                    product: Number(id) || 0,
                     slug: String(slug),
                     category: getCategoryTitle(categories),
-                    image: 
-                      images?.[0]?.image && typeof images[0]?.image !== 'number'
-                        ? images[0].image.url || ''
-                        : '',
-                    countInStock: countInStock ?? 0,
-                    name: title ?? '',
-                    price: round2(price ?? 0),
+                    image: typeof images?.[0]?.image === 'object' && images[0]?.image !== null ? images[0].image.url || '' : '',
+                    countInStock: countInStock || 0,
+                    name: title || '',
+                    price: round2(price || 0),
                     quantity: 1,
                     size: '',
-                    color: '',
+                    color: ''
                   }}
                 />
               </div>
@@ -179,6 +163,44 @@ export const ProductCard = ({
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/10 flex items-center justify-center">
             <div className="bg-white px-3 py-1.5 rounded-full text-sm font-medium text-gray-800 shadow-sm transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
               Quick View
+            </div>
+          </div>
+          
+          {/* Wishlist & Compare Buttons */}
+          <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
+            <CompareButton product={{
+              id,
+              slug,
+              title,
+              price,
+              listPrice,
+              images,
+              countInStock,
+              categories,
+              avgRating: avgRating || 0,
+              numReviews: numReviews || 0,
+              flashSaleDiscount: flashSaleDiscount || 0
+            }} />
+          </div>
+          
+          {/* Add to Cart Button */}
+          <div className="absolute inset-0 z-10">
+            <div className="absolute top-0 right-0 p-3 flex flex-col gap-2">
+              <AddToCart
+                item={{
+                  clientId: generateId(),
+                  product: Number(id) || 0,
+                  slug: String(slug),
+                  category: getCategoryTitle(categories),
+                  image: typeof images?.[0]?.image === 'object' && images[0]?.image !== null ? images[0].image.url || '' : '',
+                  countInStock: countInStock || 0,
+                  name: title || '',
+                  price: round2(price || 0),
+                  quantity: 1,
+                  size: '',
+                  color: ''
+                }}
+              />
             </div>
           </div>
         </CardContent>

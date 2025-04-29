@@ -4,10 +4,6 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Product } from '@/payload-types'
-import WishlistButton from '@/components/ProductArchive/wishlist-button'
-import CompareButton from '@/components/ProductArchive/compare-button'
-import AddToCart from '@/components/ProductArchive/add-to-cart'
-import { generateId, round2 } from '@/utilities/generateId'
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -20,19 +16,14 @@ import {
 } from '@/components/ui/dialog'
 import { QrCode } from 'lucide-react'
 import Rating from '@/components/ProductArchive/rating'
+import AddToCart from '@/components/ProductArchive/add-to-cart'
+import { generateId, round2 } from '@/utilities/generateId'
+import CompareButton from '@/components/ProductArchive/compare-button'
+import { WishlistButton } from '@/components/Wishlist/WishlistButton'
 
 interface FeaturedProductsProps {
   products: Product[]
 }
-
-const WishlistButtonWrapper = ({ productId }: { productId: string }) => (
-  <div className="absolute top-3 right-3 z-10" onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }}>
-    <WishlistButton productId={productId} />
-  </div>
-)
 
 const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
   if (!products || products.length === 0) {
@@ -136,9 +127,6 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
                     </div>
                   )}
                   
-                  {/* Wishlist Button */}
-                  <WishlistButtonWrapper productId={product.id?.toString() || ''} />
-                  
                   {/* Product Image */}
                   <div className="relative w-full aspect-square overflow-hidden rounded-md mb-2">
                     {product.images?.[0]?.image && (
@@ -210,28 +198,21 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
                   
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 w-full mt-4">
-                    <AddToCart
-                      minimal
-                      item={{
-                        clientId: generateId(),
-                        product: product.id ?? 0,
-                        slug: String(product.slug),
-                        category: getCategoryTitle(product.categories),
-                        image:
-                          product.images?.[0]?.image && typeof product.images[0]?.image !== 'number'
-                            ? typeof product.images[0].image === 'string'
-                              ? product.images[0].image
-                              : product.images[0].image.url || ''
-                            : '',
-                        countInStock: product.countInStock ?? 0,
-                        name: product.title ?? '',
-                        price: round2(product.price ?? 0),
-                        quantity: 1,
-                        size: selectedSize,
-                        color: selectedColor,
+                   
+                    <CompareButton product={product} />
+                    <WishlistButton 
+                      product={{
+                        id: product.id,
+                        title: product.title,
+                        slug: product.slug || '',
+                        price: product.price,
+                        images: product.images?.map(img => ({ 
+                          image: img.image,
+                          id: img.id 
+                        })) || [],
+                        category: typeof product.categories === 'object' && product.categories !== null ? { name: product.categories.title } : undefined
                       }}
                     />
-                    <CompareButton product={product} />
                     <div onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();

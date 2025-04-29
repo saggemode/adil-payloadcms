@@ -6,7 +6,7 @@ import { cn } from '@/utilities/ui'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Product } from '@/payload-types'
-import WishlistButton from '@/components/ProductArchive/wishlist-button'
+
 import ProductPrice from '@/components/ProductArchive/Price'
 import CompareButton from '@/components/ProductArchive/compare-button'
 import AddToCart from '@/components/ProductArchive/add-to-cart'
@@ -28,6 +28,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel'
+import { Card, CardContent } from '@/components/ui/card'
+import Rating from '@/components/ProductArchive/rating'
 
 export default function BrowsingHistoryList({ className }: { className?: string }) {
   const { products } = useBrowsingHistory()
@@ -83,15 +85,6 @@ function BrowsingHistoryCarousel({
     fetchProducts()
   }, [browsingProducts, type])
 
-  const WishlistButtonWrapper = ({ productId }: { productId: string }) => (
-    <div className="absolute top-3 right-3 z-10" onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }}>
-      <WishlistButton productId={productId} />
-    </div>
-  )
-  
   // Helper function to get category title
   const getCategoryTitle = (categories: any) => {
     if (Array.isArray(categories)) {
@@ -169,7 +162,23 @@ function BrowsingHistoryCarousel({
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                           />
                         )}
-                        <WishlistButtonWrapper productId={product.id?.toString() || ''} />
+                        <div className="absolute inset-0 z-10">
+                          <div className="absolute top-0 right-0 p-3 flex flex-col gap-2">
+                            <AddToCart
+                              item={{
+                                clientId: generateId(),
+                                name: product.title,
+                                slug: product.slug || '',
+                                image: typeof product.images?.[0]?.image === 'object' && product.images[0].image?.url ? product.images[0].image.url : '',
+                                category: typeof product.categories === 'object' && product.categories?.title ? product.categories.title : '',
+                                price: product.price,
+                                countInStock: product.countInStock,
+                                quantity: 1,
+                                product: product.id,
+                              }}
+                            />
+                          </div>
+                        </div>
                         
                         {product.countInStock === 0 && (
                           <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center rounded-t-2xl">
@@ -207,27 +216,6 @@ function BrowsingHistoryCarousel({
                         />
                       </div>
                       <div className="flex items-center gap-2 w-full">
-                        <AddToCart
-                          minimal
-                          item={{
-                            clientId: generateId(),
-                            product: product.id ?? 0,
-                            slug: String(product.slug),
-                            category: getCategoryTitle(product.categories),
-                            image:
-                              product.images?.[0]?.image && typeof product.images[0]?.image !== 'number'
-                                ? typeof product.images[0].image === 'string'
-                                  ? product.images[0].image
-                                  : product.images[0].image.url || ''
-                                : '',
-                            countInStock: product.countInStock ?? 0,
-                            name: product.title ?? '',
-                            price: round2(product.price ?? 0),
-                            quantity: 1,
-                            size: selectedSize,
-                            color: selectedColor,
-                          }}
-                        />
                         <CompareButton product={product as any} />
                         
                         <Dialog>

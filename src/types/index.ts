@@ -7,6 +7,7 @@ import {
 } from '@/types/validator'
 import { z } from 'zod'
 import { LucideIcon } from 'lucide-react'
+import { Category, Color, Media, Size, Brand, Tag } from '@/payload-types'
 
 export type OrderItem = z.infer<typeof OrderItemSchema>
 export type Cart = z.infer<typeof CartSchema>
@@ -69,4 +70,30 @@ export type Order = {
   updatedAt: Date
   items: OrderItems[]
   // other fields...
+}
+
+export interface CardProduct {
+  id: string | number
+  title: string
+  slug?: string | null
+  price: number
+  listPrice?: number
+  images?: Array<{
+    image?: number | Media | null
+    id?: string | null
+  }> | null
+  category?: {
+    name: string
+  }
+  categories?: number | Category | null
+  avgRating?: number
+  numReviews?: number
+  countInStock?: number
+  sizes?: (number | Size)[] | null
+  colors?: (number | Color)[] | null
+  brands?: number | Brand | null
+  isFeatured?: boolean | null
+  flashSaleDiscount?: number | null
+  tags?: number | Tag | null
+  meta?: Record<string, unknown>
 }

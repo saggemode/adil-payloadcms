@@ -84,7 +84,6 @@ export interface Config {
     'flash-sales': FlashSale;
     'payment-methods': PaymentMethod;
     'social-media': SocialMedia;
-    wishlists: Wishlist;
     'loyalty-points': LoyaltyPoint;
     rewards: Reward;
     referrals: Referral;
@@ -93,6 +92,7 @@ export interface Config {
     'referral-rewards': ReferralReward;
     'invoice-templates': InvoiceTemplate;
     returns: Return;
+    terms: Term;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -121,7 +121,6 @@ export interface Config {
     'flash-sales': FlashSalesSelect<false> | FlashSalesSelect<true>;
     'payment-methods': PaymentMethodsSelect<false> | PaymentMethodsSelect<true>;
     'social-media': SocialMediaSelect<false> | SocialMediaSelect<true>;
-    wishlists: WishlistsSelect<false> | WishlistsSelect<true>;
     'loyalty-points': LoyaltyPointsSelect<false> | LoyaltyPointsSelect<true>;
     rewards: RewardsSelect<false> | RewardsSelect<true>;
     referrals: ReferralsSelect<false> | ReferralsSelect<true>;
@@ -130,6 +129,7 @@ export interface Config {
     'referral-rewards': ReferralRewardsSelect<false> | ReferralRewardsSelect<true>;
     'invoice-templates': InvoiceTemplatesSelect<false> | InvoiceTemplatesSelect<true>;
     returns: ReturnsSelect<false> | ReturnsSelect<true>;
+    terms: TermsSelect<false> | TermsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1106,23 +1106,6 @@ export interface SocialMedia {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "wishlists".
- */
-export interface Wishlist {
-  id: number;
-  user: number | User;
-  items?:
-    | {
-        product: number | Product;
-        addedAt: string;
-        id?: string | null;
-      }[]
-    | null;
-  createdAt: string;
-  updatedAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "loyalty-points".
  */
 export interface LoyaltyPoint {
@@ -1580,6 +1563,18 @@ export interface Return {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms".
+ */
+export interface Term {
+  id: number;
+  title: string;
+  layout: (ContentBlock | MediaBlock | CallToActionBlock | FormBlock | ArchiveBlock)[];
+  lastUpdated: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1828,10 +1823,6 @@ export interface PayloadLockedDocument {
         value: number | SocialMedia;
       } | null)
     | ({
-        relationTo: 'wishlists';
-        value: number | Wishlist;
-      } | null)
-    | ({
         relationTo: 'loyalty-points';
         value: number | LoyaltyPoint;
       } | null)
@@ -1862,6 +1853,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'returns';
         value: number | Return;
+      } | null)
+    | ({
+        relationTo: 'terms';
+        value: number | Term;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2524,22 +2519,6 @@ export interface SocialMediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "wishlists_select".
- */
-export interface WishlistsSelect<T extends boolean = true> {
-  user?: T;
-  items?:
-    | T
-    | {
-        product?: T;
-        addedAt?: T;
-        id?: T;
-      };
-  createdAt?: T;
-  updatedAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "loyalty-points_select".
  */
 export interface LoyaltyPointsSelect<T extends boolean = true> {
@@ -2750,6 +2729,25 @@ export interface ReturnsSelect<T extends boolean = true> {
         description?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms_select".
+ */
+export interface TermsSelect<T extends boolean = true> {
+  title?: T;
+  layout?:
+    | T
+    | {
+        content?: T | ContentBlockSelect<T>;
+        mediaBlock?: T | MediaBlockSelect<T>;
+        cta?: T | CallToActionBlockSelect<T>;
+        formBlock?: T | FormBlockSelect<T>;
+        archive?: T | ArchiveBlockSelect<T>;
+      };
+  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -4,7 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { formatPrice } from '@/utilities/formatPrice'
 import Image from 'next/image'
 import { Product, Category } from '@/payload-types'
-import WishlistButton from '../wishlist-button'
+import { Card, CardContent } from '@/components/ui/card'
+import Link from 'next/link'
+import Rating from '@/components/ProductArchive/rating'
+import AddToCart from '@/components/ProductArchive/add-to-cart'
+import { generateId, round2 } from '@/utilities/generateId'
+import CompareButton from '@/components/ProductArchive/compare-button'
 
 interface ProductData extends Omit<Product, 'categories'> {
   categories?: number | Category | null
@@ -54,9 +59,22 @@ export function ClientProductCard({
           </div>
         )}
 
-        {/* Wishlist Button */}
-        <div className="absolute top-2 left-2 z-10">
-          <WishlistButton productId={product.id?.toString() || ''} />
+        {/* Add to Cart Button */}
+        <div className="absolute inset-0 z-10">
+          <div className="absolute top-0 right-0 p-3 flex flex-col gap-2">
+            <AddToCart
+              item={{
+                clientId: generateId(),
+                name: product.title,
+                slug: product.slug || '',
+                image: product.images?.[0]?.image?.url || '',
+                category: product.categories?.title || '',
+                price: product.price,
+                countInStock: product.countInStock,
+                quantity: 1,
+              }}
+            />
+          </div>
         </div>
       </div>
 

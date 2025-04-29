@@ -168,13 +168,6 @@ export default async function AccountPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Price Alerts</p>
-                        <p className="text-sm text-muted-foreground">Be notified when items on your wishlist drop in price</p>
-                      </div>
-                      <Button variant="outline" size="sm">Manage</Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
                         <p className="font-medium">Marketing</p>
                         <p className="text-sm text-muted-foreground">Receive news about products and promotions</p>
                       </div>
@@ -225,22 +218,6 @@ export default async function AccountPage() {
             </Card>
 
             <Card className="hover:shadow-md transition-shadow">
-              <Link href="/wishlist">
-                <CardContent className="flex items-start gap-4 p-6">
-                  <div>
-                    <Heart className="w-12 h-12 text-red-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">Wishlist</h2>
-                    <p className="text-muted-foreground">
-                      View saved items and add them to your cart
-                    </p>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow">
               <Link href="/rewards">
                 <CardContent className="flex items-start gap-4 p-6">
                   <div>
@@ -249,7 +226,7 @@ export default async function AccountPage() {
                   <div>
                     <h2 className="text-xl font-bold">Rewards</h2>
                     <p className="text-muted-foreground">
-                      View and redeem your loyalty points and special offers
+                      View and redeem your rewards
                     </p>
                   </div>
                 </CardContent>

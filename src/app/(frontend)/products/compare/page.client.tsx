@@ -11,14 +11,14 @@ import AddToCart from '@/components/ProductArchive/add-to-cart'
 import { generateId, round2 } from '@/utilities/generateId'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
-
-import { CardProduct } from '@/components/ProductArchive/ProductCard'
+import ProductPrice from '@/components/ProductArchive/Price'
+import { CardProduct } from '@/types'
 
 // Define an interface for the attribute formatter functions
 interface ProductAttribute {
   key: string
   label: string
-  formatter: (val: unknown) => string
+  formatter: (val: unknown) => React.ReactNode
 }
 
 // Define type for color and size objects
@@ -35,7 +35,11 @@ const comparisonCategories: Array<{
   {
     title: 'Basic Info',
     attributes: [
-      { key: 'price', label: 'Price', formatter: (val: unknown) => typeof val === 'number' ? `$${val.toFixed(2)}` : 'N/A' },
+      { 
+        key: 'price', 
+        label: 'Price', 
+        formatter: (val: unknown) => typeof val === 'number' ? <ProductPrice price={val} /> : 'N/A' 
+      },
       { key: 'avgRating', label: 'Rating', formatter: (val: unknown) => typeof val === 'number' ? val.toFixed(1) : 'N/A' },
       { key: 'numReviews', label: 'Review Count', formatter: (val: unknown) => typeof val === 'number' ? val.toString() : '0' },
       { key: 'countInStock', label: 'Availability', formatter: (val: unknown) => typeof val === 'number' ? (val > 0 ? `In Stock (${val})` : 'Out of Stock') : 'N/A' },
@@ -96,7 +100,7 @@ const comparisonCategories: Array<{
       { 
         key: 'listPrice', 
         label: 'Original Price', 
-        formatter: (val: unknown) => typeof val === 'number' ? `$${val.toFixed(2)}` : 'N/A'
+        formatter: (val: unknown) => typeof val === 'number' ? <ProductPrice price={val} /> : 'N/A'
       },
       { 
         key: 'isFeatured', 
@@ -225,13 +229,9 @@ const ComparePage: React.FC = () => {
                 
                 <div className="flex flex-col items-center text-center group">
                   <div className="w-24 h-24 sm:w-32 sm:h-32 relative mb-4">
-                    {product.images && product.images[0]?.image && (
+                    {product.images && product.images[0]?.image && typeof product.images[0].image === 'object' && (
                       <Image
-                        src={
-                          typeof product.images[0].image === 'object' && 'url' in product.images[0].image
-                            ? product.images[0].image.url || ''
-                            : ''
-                        }
+                        src={product.images[0].image.url || '/placeholder.png'}
                         alt={product.title || 'Product image'}
                         fill
                         className="object-contain"
@@ -266,7 +266,7 @@ const ComparePage: React.FC = () => {
                     minimal
                     item={{
                       clientId: generateId(),
-                      product: product.id || 0,
+                      product: Number(product.id) || 0,
                       slug: String(product.slug),
                       category: getCategoryTitle(product.categories),
                       image:

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react'
-import { CardProduct } from '@/components/ProductArchive/ProductCard'
+import { CardProduct } from '@/types'
 
 interface CompareContextType {
   comparedProducts: CardProduct[]
