@@ -98,7 +98,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"path" varchar NOT NULL,
   	"pages_id" integer,
   	"posts_id" integer,
-  	"terms_id" integer
+  	"terms_id" integer,
+  	"categories_id" integer
   );
   
   ALTER TABLE "terms_blocks_content_columns" ENABLE ROW LEVEL SECURITY;
@@ -137,16 +138,16 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
 
   -- Copy data from categories_id to terms_id if needed
   DO $$ BEGIN
-    UPDATE "terms_rels" SET "terms_id" = "categories_id" WHERE "categories_id" IS NOT NULL;
+    UPDATE "terms_rels" SET "terms_id" = "categories_id" WHERE "categories_id" IS NOT NULL AND "terms_id" IS NULL;
   EXCEPTION
     WHEN undefined_column THEN null;
   END $$;
 
-  -- Drop categories_id column if it exists
+  -- Keep categories_id column for backward compatibility
   DO $$ BEGIN
-    ALTER TABLE "terms_rels" DROP COLUMN IF EXISTS "categories_id";
+    ALTER TABLE "terms_rels" ADD COLUMN IF NOT EXISTS "categories_id" integer;
   EXCEPTION
-    WHEN undefined_column THEN null;
+    WHEN duplicate_column THEN null;
   END $$;`)
 }
 
