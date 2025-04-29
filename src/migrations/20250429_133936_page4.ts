@@ -121,7 +121,19 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX IF NOT EXISTS "terms_rels_terms_id_idx" ON "terms_rels" USING btree ("terms_id");
   
   -- Add terms_id to payload_locked_documents_rels
-  ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
+  DO $$ BEGIN
+    ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
+  EXCEPTION
+    WHEN undefined_table THEN
+      -- Create the table if it doesn't exist
+      CREATE TABLE IF NOT EXISTS "payload_locked_documents_rels" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "order" integer,
+        "parent_id" integer NOT NULL,
+        "path" varchar NOT NULL,
+        "terms_id" integer
+      );
+  END $$;
   
   DO $$ BEGIN
     ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_terms_fk" FOREIGN KEY ("terms_id") REFERENCES "public"."terms"("id") ON DELETE cascade ON UPDATE no action;
