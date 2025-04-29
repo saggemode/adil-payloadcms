@@ -112,24 +112,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "terms" ENABLE ROW LEVEL SECURITY;
   ALTER TABLE "terms_rels" ENABLE ROW LEVEL SECURITY;
   
-  DO $$ BEGIN
-   ALTER TABLE "terms_rels" ADD CONSTRAINT "terms_rels_terms_id_terms_id_fk" FOREIGN KEY ("terms_id") REFERENCES "public"."terms"("id") ON DELETE set null ON UPDATE no action;
-  EXCEPTION
-   WHEN duplicate_object THEN null;
-  END $$;
-  
-  CREATE INDEX IF NOT EXISTS "terms_rels_terms_id_idx" ON "terms_rels" USING btree ("terms_id");
-  ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
-  
-  DO $$ BEGIN
-   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_terms_fk" FOREIGN KEY ("terms_id") REFERENCES "public"."terms"("id") ON DELETE cascade ON UPDATE no action;
-  EXCEPTION
-   WHEN duplicate_object THEN null;
-  END $$;
-  
-  CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_terms_id_idx" ON "payload_locked_documents_rels" USING btree ("terms_id");
-
-  -- Add terms_id column if it doesn't exist
+  -- Ensure terms_id column exists
   DO $$ BEGIN
     ALTER TABLE "terms_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
   EXCEPTION
@@ -143,12 +126,25 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
     WHEN undefined_column THEN null;
   END $$;
 
-  -- Keep categories_id column for backward compatibility
+  -- Add foreign key constraint for terms_id
   DO $$ BEGIN
-    ALTER TABLE "terms_rels" ADD COLUMN IF NOT EXISTS "categories_id" integer;
+    ALTER TABLE "terms_rels" ADD CONSTRAINT "terms_rels_terms_id_terms_id_fk" FOREIGN KEY ("terms_id") REFERENCES "public"."terms"("id") ON DELETE set null ON UPDATE no action;
   EXCEPTION
-    WHEN duplicate_column THEN null;
-  END $$;`)
+    WHEN duplicate_object THEN null;
+  END $$;
+  
+  CREATE INDEX IF NOT EXISTS "terms_rels_terms_id_idx" ON "terms_rels" USING btree ("terms_id");
+  
+  -- Add terms_id to payload_locked_documents_rels
+  ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
+  
+  DO $$ BEGIN
+    ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_terms_fk" FOREIGN KEY ("terms_id") REFERENCES "public"."terms"("id") ON DELETE cascade ON UPDATE no action;
+  EXCEPTION
+    WHEN duplicate_object THEN null;
+  END $$;
+  
+  CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_terms_id_idx" ON "payload_locked_documents_rels" USING btree ("terms_id");`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
