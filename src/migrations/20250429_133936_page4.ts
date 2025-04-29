@@ -98,8 +98,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"path" varchar NOT NULL,
   	"pages_id" integer,
   	"posts_id" integer,
-  	"terms_id" integer,
-  	"categories_id" integer
+  	"terms_id" integer
   );
   
   ALTER TABLE "terms_blocks_content_columns" ENABLE ROW LEVEL SECURITY;
@@ -112,20 +111,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "terms" ENABLE ROW LEVEL SECURITY;
   ALTER TABLE "terms_rels" ENABLE ROW LEVEL SECURITY;
   
-  -- Ensure terms_id column exists
-  DO $$ BEGIN
-    ALTER TABLE "terms_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
-  EXCEPTION
-    WHEN duplicate_column THEN null;
-  END $$;
-
-  -- Copy data from categories_id to terms_id if needed
-  DO $$ BEGIN
-    UPDATE "terms_rels" SET "terms_id" = "categories_id" WHERE "categories_id" IS NOT NULL AND "terms_id" IS NULL;
-  EXCEPTION
-    WHEN undefined_column THEN null;
-  END $$;
-
   -- Add foreign key constraint for terms_id
   DO $$ BEGIN
     ALTER TABLE "terms_rels" ADD CONSTRAINT "terms_rels_terms_id_terms_id_fk" FOREIGN KEY ("terms_id") REFERENCES "public"."terms"("id") ON DELETE set null ON UPDATE no action;
