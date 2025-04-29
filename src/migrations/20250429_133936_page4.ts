@@ -101,15 +101,19 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"terms_id" integer
   );
   
-  ALTER TABLE "terms_blocks_content_columns" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms_blocks_content" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms_blocks_media_block" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms_blocks_cta_links" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms_blocks_cta" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms_blocks_form_block" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms_blocks_archive" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms" ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE "terms_rels" ENABLE ROW LEVEL SECURITY;
+  -- Add terms_id to terms_rels if it doesn't exist
+  DO $$ BEGIN
+    ALTER TABLE "terms_rels" ADD COLUMN IF NOT EXISTS "terms_id" integer;
+  EXCEPTION
+    WHEN duplicate_column THEN null;
+  END $$;
+  
+  -- Drop categories_id if it exists
+  DO $$ BEGIN
+    ALTER TABLE "terms_rels" DROP COLUMN IF EXISTS "categories_id";
+  EXCEPTION
+    WHEN undefined_column THEN null;
+  END $$;
   
   -- Add foreign key constraint for terms_id
   DO $$ BEGIN
