@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import BrowsingHistoryList from '@/heros/ProductHero/components/browsing-history-list'
 import useCartStore from '@/hooks/use-cart-store'
 import { APP_NAME, FREE_SHIPPING_MIN_PRICE } from '@/constants'
 import Image from 'next/image'
@@ -413,8 +412,6 @@ export default function CartPage() {
           </>
         )}
       </div>
-      
-      <BrowsingHistoryList className="mt-10" />
     </div>
   )
 }

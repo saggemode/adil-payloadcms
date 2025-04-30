@@ -9,10 +9,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import useCartStore from '@/hooks/use-cart-store'
 import { FREE_SHIPPING_MIN_PRICE } from '@/constants'
-import BrowsingHistoryList from '@/heros/ProductHero/components/browsing-history-list'
 import ProductPrice from '@/components/ProductArchive/Price'
 import { cn } from '@/utilities/ui'
-//import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import { useState, useEffect } from 'react'
 
 export default function CartAddItem({ itemId }: { itemId: string }) {
@@ -165,8 +163,6 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
           </CardContent>
         </Card>
       </div>
-
-      <BrowsingHistoryList />
     </div>
   )
 }

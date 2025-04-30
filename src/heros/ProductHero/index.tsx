@@ -10,8 +10,6 @@ import SelectVariant from '@/components/ProductArchive/select-variant'
 import BreadcrumbProduct from './components/BreadcrumbProduct'
 import PhotoSection from './components/PhotoSection'
 import AddToCart from '@/components/ProductArchive/add-to-cart'
-import AddToBrowsingHistory from './components/add-to-browsing-history'
-import BrowsingHistoryList from './components/browsing-history-list'
 import { generateId, round2 } from '@/utilities/generateId'
 import RichText from '@/components/RichText'
 import RatingSummary from '@/components/ProductArchive/rating-summary'
@@ -81,7 +79,6 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
     <main>
       <div className="max-w-frame mx-auto px-4 xl:px-0">
         <hr className="h-[1px] border-t-black/10 mb-5 sm:mb-6" />
-        <AddToBrowsingHistory id={String(id)} category={getCategoryTitle(categories)} />
         <BreadcrumbProduct title={product?.title ?? 'product'} />
         <section>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8">
@@ -261,10 +258,6 @@ export const ProductHero: React.FC<{ product: Product }> = ({ product }) => {
             Customer Reviews
           </h2>
           <ReviewList product={product} userId={user?.id} />
-        </section>
-
-        <section>
-          <BrowsingHistoryList className="mt-10" />
         </section>
       </div>
     </main>

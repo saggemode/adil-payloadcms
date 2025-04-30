@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useSeasonalRecommendations } from '@/hooks/useRecommendations'
+import { useTrendingProducts } from '@/hooks/useRecommendations'
 import ProductSlider from '@/components/ProductArchive/product-slider'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -12,7 +12,7 @@ export default function SeasonalRecommendations({
   title?: string
   limit?: number
 }) {
-  const { data, isLoading, error } = useSeasonalRecommendations(limit)
+  const { data, isLoading, error } = useTrendingProducts(limit)
 
   if (isLoading) {
     return (

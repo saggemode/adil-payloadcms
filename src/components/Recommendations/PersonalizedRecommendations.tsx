@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { usePersonalizedRecommendations } from '@/hooks/useRecommendations'
+import { useQuery } from '@tanstack/react-query'
 import ProductSlider from '@/components/ProductArchive/product-slider'
 import { Skeleton } from '@/components/ui/skeleton'
-import useBrowsingHistory from '@/hooks/use-browsing-history'
+import { getTrendingProducts } from '@/actions/recommendationAction'
 
 export default function PersonalizedRecommendations({
   title = 'Recommended for you',
@@ -15,16 +15,15 @@ export default function PersonalizedRecommendations({
   limit?: number
   fallbackTitle?: string
 }) {
-  const { data, isLoading, error } = usePersonalizedRecommendations(limit)
-  const { products: browsingHistory } = useBrowsingHistory()
-  
-  const hasEnoughHistory = Array.isArray(browsingHistory) && 
-    browsingHistory.filter(p => p && p.id && p.category).length > 0
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['trendingProducts', limit],
+    queryFn: () => getTrendingProducts({ limit }),
+  })
 
   if (isLoading) {
     return (
       <div className="w-full">
-        <h2 className="h2-bold mb-5">{hasEnoughHistory ? title : fallbackTitle}</h2>
+        <h2 className="h2-bold mb-5">{fallbackTitle}</h2>
         <div className="flex space-x-4 overflow-x-auto">
           {Array(4).fill(0).map((_, index) => (
             <div key={index} className="min-w-[200px]">
@@ -39,11 +38,8 @@ export default function PersonalizedRecommendations({
   }
 
   if (error || !data?.success || !data?.data?.products || data.data.products.length === 0) {
-    if (!hasEnoughHistory) {
-      return null
-    }
     return null
   }
 
-  return <ProductSlider title={hasEnoughHistory ? title : fallbackTitle} products={data.data.products} />
+  return <ProductSlider title={fallbackTitle} products={data.data.products} />
 } 

@@ -359,13 +359,7 @@ export async function getAllProducts({
     sort: sortOrder,
   })
 
-  console.log(`Found ${products.docs?.length || 0} products out of ${products.totalDocs || 0} total`);
-  
-  if (products.docs?.length > 0) {
-    console.log('Sample product:', JSON.stringify(products.docs[0], null, 2));
-  } else {
-    console.log('No products found with the given filters');
-  }
+
 
   // If featured is true and we have products, filter them client-side
   // since the 'featured' field doesn't exist in the schema

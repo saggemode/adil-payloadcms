@@ -92,7 +92,6 @@ export interface Config {
     'referral-rewards': ReferralReward;
     'invoice-templates': InvoiceTemplate;
     returns: Return;
-    terms: Term;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -129,7 +128,6 @@ export interface Config {
     'referral-rewards': ReferralRewardsSelect<false> | ReferralRewardsSelect<true>;
     'invoice-templates': InvoiceTemplatesSelect<false> | InvoiceTemplatesSelect<true>;
     returns: ReturnsSelect<false> | ReturnsSelect<true>;
-    terms: TermsSelect<false> | TermsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1563,18 +1561,6 @@ export interface Return {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "terms".
- */
-export interface Term {
-  id: number;
-  title: string;
-  layout: (ContentBlock | MediaBlock | CallToActionBlock | FormBlock | ArchiveBlock)[];
-  lastUpdated: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1853,10 +1839,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'returns';
         value: number | Return;
-      } | null)
-    | ({
-        relationTo: 'terms';
-        value: number | Term;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2729,25 +2711,6 @@ export interface ReturnsSelect<T extends boolean = true> {
         description?: T;
         id?: T;
       };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "terms_select".
- */
-export interface TermsSelect<T extends boolean = true> {
-  title?: T;
-  layout?:
-    | T
-    | {
-        content?: T | ContentBlockSelect<T>;
-        mediaBlock?: T | MediaBlockSelect<T>;
-        cta?: T | CallToActionBlockSelect<T>;
-        formBlock?: T | FormBlockSelect<T>;
-        archive?: T | ArchiveBlockSelect<T>;
-      };
-  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }

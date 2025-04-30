@@ -18,7 +18,6 @@ import Paginations from '@/components/paginations'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/utilities/ui'
 import { Inbox, PackageCheck, Calendar, CreditCard } from 'lucide-react'
-import BrowsingHistoryList from '@/heros/ProductHero/components/browsing-history-list'
 
 const PAGE_TITLE = 'Your Orders'
 export const metadata: Metadata = {
@@ -130,8 +129,6 @@ export default async function OrdersPage(props: { searchParams: Promise<{ page: 
           <Paginations page={page} totalPages={orders.totalPages} />
         </div>
       )}
-
-<BrowsingHistoryList className='mt-16' />
     </div>
   )
 }
