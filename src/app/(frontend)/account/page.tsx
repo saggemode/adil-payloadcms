@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import BrowsingHistoryList from '@/heros/ProductHero/components/browsing-history-list'
+
 import { Bell, CreditCard, Gift, Home, Mail, PackageCheckIcon, RefreshCcw, Settings, ShoppingBag, Sparkles, Tag, User } from 'lucide-react'
 import { Metadata } from 'next'
 import Link from 'next/link'
@@ -234,7 +234,7 @@ export default async function AccountPage() {
             </Card>
           </div>
           
-          <BrowsingHistoryList className='mt-8' />
+        
         </TabsContent>
 
         {/* Account Tab */}
